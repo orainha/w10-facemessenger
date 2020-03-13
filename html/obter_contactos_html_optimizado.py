@@ -5,7 +5,7 @@ import sqlite3
 
 # CONSTANTS
 
-CONTACTS_TEMPLATE_FILE_PATH = "html_contact_template.html"
+CONTACTS_TEMPLATE_FILE_PATH = "html_contacts_template.html"
 
 NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
 DB_PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\msys_709212107.db"
