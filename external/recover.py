@@ -1,9 +1,8 @@
-#Code from:
-#GitHub: alimuldal
-#https://gist.github.com/alimuldal/521998ed8308fa61fce8
-
-
 #!/usr/bin/env python
+
+# Code from:
+# GitHub: alimuldal
+# https://gist.github.com/alimuldal/521998ed8308fa61fce8
 
 import argparse
 import subprocess
@@ -38,7 +37,6 @@ parser.add_argument(
      '-v', '--verbose', dest='verbose', action='store_true',
     default=False, help=('print progress message'),
 )
-
 
 def recover(imgpath, outpath, verbose=False):
 

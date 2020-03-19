@@ -1,7 +1,6 @@
 import sys
 import os
 
-
 try:
     #r"\\.\PhysicalDrive1"
     #disk = open(r"C:\Users\user\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState",'rb')
@@ -14,4 +13,3 @@ try:
 except IOError as error:
     print (error)
     pass
-

@@ -20,5 +20,3 @@ if req.status_code == requests.codes.ok:
 #try:
 # open file stream
  #  file_write = open(ficheiro_imagens, 'w+')
-
-    
