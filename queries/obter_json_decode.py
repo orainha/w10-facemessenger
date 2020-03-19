@@ -16,6 +16,3 @@ try:
 except IOError as error:
    print (error)
    #sys.exit()
-
-
-    
