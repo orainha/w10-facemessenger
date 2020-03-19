@@ -38,13 +38,19 @@ FROM messages AS m JOIN user_contact_info AS u ON m.sender_id = u.contact_id
 ORDER BY m.timestamp_ms
 
 -- Obter mensagens por cada participante e conteúdo partilhado
-SELECT m.thread_key, datetime((m.timestamp_ms)/1000,'unixepoch'), 
-        u.contact_id, m.sender_id, u.name, m.text, 
-        a.preview_url, a.playable_url, a.title_text,
-        a.subtitle_text, a.default_cta_type, a.playable_url_mime_type
-FROM messages as m 
-    LEFT JOIN attachments AS a ON m.message_id = a.message_id
-    JOIN user_contact_info as u ON m.sender_id = u.contact_id
+SELECT m.thread_key,
+       datetime((m.timestamp_ms)/1000,'unixepoch'), 
+       u.contact_id,
+       m.sender_id,
+       u.name, m.text,
+       a.preview_url,
+       a.playable_url,
+       a.title_text,
+       a.subtitle_text,
+       a.default_cta_type,
+       a.playable_url_mime_type
+FROM messages AS m LEFT JOIN attachments AS a ON m.message_id = a.message_id
+                        JOIN user_contact_info AS u ON m.sender_id = u.contact_id
 ORDER BY m.timestamp_ms
 
 -- Obter mensagens onde existem "reactions"
