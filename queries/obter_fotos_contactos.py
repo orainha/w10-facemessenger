@@ -2,29 +2,21 @@ import sys
 import sqlite3
 import requests
 
-
 # CONSTANTS
-
 IMG_PATH = "C:\\Users\\user\\Documents\\python\\querrys\\fotos\\"
 DB_PATH = "C:\\Users\\user\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\msys_709212107.db"
-
 QUERRY = "SELECT c.id, c.name, c.profile_picture_large_url, u.phone_number, u.email_address \
           FROM contacts as c \
                JOIN user_contact_info as u ON c.id = u.contact_id \
           ORDER BY c.name"
-
 QUERRY_COUNT = "SELECT COUNT (c.id) \
                FROM contacts as c \
                      JOIN user_contact_info as u ON c.id = u.contact_id \
                ORDER BY c.name"
-
 STDOUT_PLEASE_WAIT = "[+]Getting all contact photos and information.\n[+]This might take a while..."
-
 STDOUT_ALL_OK = "All files successfuly created"
 
-
 # FUNCTIONS
-
 def printContactInfo(messengerDB):
 
    # connect to database
@@ -80,11 +72,9 @@ def printContactInfo(messengerDB):
                print (error)
 
 # MAIN
-
 try:
    printContactInfo(DB_PATH)
 except IOError as error:
     print (error)
 finally:
    print (STDOUT_ALL_OK)
-

@@ -3,18 +3,12 @@ import sqlite3
 import json
 
 # CONSTANTS
-
 CONTACT_PATH = "C:\\Users\\user\\Documents\\python\\querrys\\contactos\\contacts.txt"
 DB_PATH = "C:\\Users\\user\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\msys_709212107.db"
-
 QUERRY = "SELECT * FROM user_contact_info"
-
-
 STDOUT_ALL_OK = "Contact file successfuly created"
 
-
 # FUNCTIONS
-
 def printContacts(messengerDB):
 
    #connect to database
@@ -55,13 +49,10 @@ def printContacts(messengerDB):
             print (error)
             break
 
-
 # MAIN
-
 try:
    counter = printContacts(DB_PATH)
 except IOError as error:
     print (error)
 finally:
    print (STDOUT_ALL_OK)
-

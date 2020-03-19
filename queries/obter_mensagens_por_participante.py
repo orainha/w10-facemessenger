@@ -2,21 +2,15 @@ import sys
 import sqlite3
 
 # CONSTANTS
-
 MSG_PATH = "C:\\Users\\user\\Documents\\python\\querrys\\mensagens\\"
 DB_PATH = "C:\\Users\\user\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\msys_709212107.db"
-
 QUERRY = "SELECT m.thread_key, datetime((m.timestamp_ms)/1000,'unixepoch'), u.contact_id, m.sender_id, u.name, m.text \
           FROM messages as m \
                   JOIN user_contact_info as u ON m.sender_id = u.contact_id \
           ORDER BY m.timestamp_ms DESC"
-
-
 STDOUT_ALL_OK = " files successfuly created"
 
-
 # FUNCTIONS
-
 def printMsgs(messengerDB):
 
    #connect to database
@@ -71,9 +65,7 @@ def printMsgs(messengerDB):
             break
    return file_counter
 
-
 # MAIN
-
 counter = 0
 try:
    counter = printMsgs(DB_PATH)
@@ -81,4 +73,3 @@ except IOError as error:
     print (error)
 finally:
    print (str(counter) + STDOUT_ALL_OK)
-

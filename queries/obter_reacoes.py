@@ -3,23 +3,17 @@ import sqlite3
 import json
 from pathlib import Path
 
-
 # CONSTANTS
-
 REACTIONS_PATH = "C:\\Users\\user\\Documents\\python\\querrys\\contactos\\reactions.json"
 DB_PATH2 = "C:\\Users\\user\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\msys_709212107.db"
 DB_PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\msys_709212107.db"
-
 QUERRY = "SELECT DISTINCT r.reaction \
          FROM reactions as r "
-
-
 STDOUT_ALL_OK = "Reactions successfuly created"
 
-
 # FUNCTIONS
-
 def printReaction(messengerDB):
+
    #connect to database
    conn = sqlite3.connect(messengerDB)
    c = conn.cursor()
@@ -53,14 +47,11 @@ def printReaction(messengerDB):
             break
 
    file_write.close()
-# MAIN
 
+# MAIN
 try:
    counter = printReaction(DB_PATH)
 except IOError as error:
     print (error)
 finally:
    print (STDOUT_ALL_OK)
-
- 
- 
