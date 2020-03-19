@@ -8,8 +8,24 @@ import sqlite3
 PARTICIPANTS_TEMPLATE_FILE_PATH = "html_participants_template.html"
 
 NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
-DB_PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\msys_709212107.db"
 
+PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\"
+
+#get id, present in db file name
+try:
+    f_data = open (PATH + 'data', 'r')
+    data = json.load(f_data)
+    for item in data:
+        txt = item.split(":")
+        auth_id = txt[1]
+        break
+
+    db_file_name = "msys_" + auth_id + ".db"
+
+except IOError as error:
+    print (error)
+
+DB_PATH = PATH + db_file_name
 PARTICIPANTS_QUERRY = "SELECT c.profile_picture_url, c.name, c.profile_picture_large_url, p.read_watermark_timestamp_ms, \
      p.delivered_watermark_timestamp_ms, p.nickname \
      FROM participants as p \
