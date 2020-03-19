@@ -1,3 +1,7 @@
+# Code from:
+# [Page 89-90] (99 from pdf)
+# TJ O'Connor - Violent Python. A cookbook for Hackers, Forensic Analysts, Penetration Testers and Security Engeneers (2012, Syngress)
+
 import sys
 import os
 import optparse
