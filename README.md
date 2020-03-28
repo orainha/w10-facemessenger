@@ -11,8 +11,3 @@
 ├───queries       <--- Query examples in Python
 └───raw           <--- Example code to extract data from SQLite database (non-queries)
 ```
-
-## Authors
-Osvaldo Rainha - [orainha](https://github.com/orainha)
-
-Ricardo Lopes - [ricardoapl](https://github.com/ricardoapl)
