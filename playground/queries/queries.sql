@@ -1,10 +1,11 @@
--- Obter participantes guardados em cache (thread_key, nome, foto)
-SELECT thread_key, thread_name,
+-- Obter participantes guardados em cache
+SELECT thread_key,
+       thread_name,
        other_participant_profile_picture_url,
        other_participant_url_expiration_timestamp_ms
 FROM _cached_participant_thread_info
 
--- Obter todos os amigos adicionados e respetivas informações de contacto (contact_id, name, phone_number, email_address)
+-- Obter todos os amigos adicionados e respetivas informações de contacto
 SELECT *
 FROM user_contact_info
 
@@ -12,15 +13,16 @@ FROM user_contact_info
 SELECT *
 FROM message_requests
 
--- Obter participantes (thread_key, contact_id, nome, timestamp, nickname)
+-- Obter participantes
 SELECT p.thread_key,
-       p.contact_id, u.name,
+       p.contact_id,
+       u.name,
        p.read_watermark_timestamp_ms,
        p.delivered_watermark_timestamp_ms,
        p.nickname
 FROM participants AS p JOIN user_contact_info AS u ON u.contact_id = p.contact_id
 
--- Obter todos os contactos, respetivas fotos de perfil e informações (phone_number, email_address)
+-- Obter todos os contactos, respetivas fotos de perfil e informações
 SELECT c.id,
        c.name,
        c.profile_picture_large_url,
