@@ -4,10 +4,12 @@
 
 ```
 │   .gitignore
-│   queries.sql   <--- Query examples in SQL
-│   README.md
-├───external      <--- Example code of which we are not the authors of
-├───html          <--- Scripts for extraction and HTML representation
-├───playground    <--- Experimental scripts (use at your own risk)
-└───queries       <--- Query examples in Python
+├───external        <--- Example code of which we are not the authors of
+├───html            <--- "The real deal"
+│   └───js
+├───html-csv        <--- Temporary work directory for fixing CSV exports
+│   ├───javascript
+│   └───python
+└───playground      <--- Experimental scripts (use at your own risk)
+    └───queries
 ```
