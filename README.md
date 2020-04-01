@@ -6,8 +6,8 @@
 │   .gitignore
 │   queries.sql   <--- Query examples in SQL
 │   README.md
-├───external      <--- Example code for which we are not the authors
+├───external      <--- Example code of which we are not the authors of
 ├───html          <--- Scripts for extraction and HTML representation
-├───queries       <--- Query examples in Python
-└───raw           <--- Example code to extract data from SQLite database (non-queries)
+├───playground    <--- Experimental scripts (use at your own risk)
+└───queries       <--- Query examples in Python
 ```
