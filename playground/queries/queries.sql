@@ -1,19 +1,19 @@
--- Obter participantes guardados em cache
+-- Obtain (cached) conversation participant info
 SELECT thread_key,
        thread_name,
        other_participant_profile_picture_url,
        other_participant_url_expiration_timestamp_ms
 FROM _cached_participant_thread_info
 
--- Obter todos os amigos adicionados e respetivas informações de contacto
+-- Obtain contacts and corresponding info (brief)
 SELECT *
 FROM user_contact_info
 
--- Obter pedidos de primeira mensagem trocada
+-- Obtain (first) message exchange request
 SELECT *
 FROM message_requests
 
--- Obter participantes
+-- Obtain conversation participant info
 SELECT p.thread_key,
        p.contact_id,
        u.name,
@@ -22,7 +22,7 @@ SELECT p.thread_key,
        p.nickname
 FROM participants AS p JOIN user_contact_info AS u ON u.contact_id = p.contact_id
 
--- Obter todos os contactos, respetivas fotos de perfil e informações
+-- Obtain contacts and corresponding info (deprecated)
 SELECT c.id,
        c.name,
        c.profile_picture_large_url,
@@ -30,7 +30,7 @@ SELECT c.id,
        u.email_address
 FROM contacts AS c JOIN user_contact_info AS u ON c.id = u.contact_id
 
--- Obter mensagens por cada participante
+-- Obtain messages per participant
 SELECT m.thread_key,
        datetime((m.timestamp_ms)/1000,'unixepoch'),
        u.contact_id, m.sender_id,
@@ -39,7 +39,7 @@ SELECT m.thread_key,
 FROM messages AS m JOIN user_contact_info AS u ON m.sender_id = u.contact_id
 ORDER BY m.timestamp_ms
 
--- Obter mensagens por cada participante e conteúdo partilhado
+-- Obtain messages (and any other content) per participant
 SELECT m.thread_key,
        datetime((m.timestamp_ms)/1000,'unixepoch'), 
        u.contact_id,
@@ -55,7 +55,7 @@ FROM messages AS m LEFT JOIN attachments AS a ON m.message_id = a.message_id
                         JOIN user_contact_info AS u ON m.sender_id = u.contact_id
 ORDER BY m.timestamp_ms
 
--- Obter mensagens onde existem "reactions"
+-- Obtain messages where there are reactions
 SELECT r.thread_key,
        m.timestamp_ms,
        u.name,
