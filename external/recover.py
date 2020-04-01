@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
-# Code from:
-# GitHub: alimuldal
-# https://gist.github.com/alimuldal/521998ed8308fa61fce8
+# As seen in https://gist.github.com/alimuldal/521998ed8308fa61fce8
+# alimuldal (at) GitHub
 
 import argparse
 import subprocess
