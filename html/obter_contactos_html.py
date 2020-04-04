@@ -1,5 +1,6 @@
-import sys
 from pathlib import Path
+from html_headers import fill_header
+import sys
 import webbrowser
 import sqlite3
 import shutil
@@ -78,6 +79,7 @@ def function_write_contacts_to_html(database_path, obj_file):
 try:
     create_js_files()
     function_html_contacts_file(CONTACTS_TEMPLATE_FILE_PATH, NEW_FILE_PATH)
+    fill_header(DB_PATH, NEW_FILE_PATH + 'contacts.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'contacts.html')
 except IOError as error:
     print(error)
