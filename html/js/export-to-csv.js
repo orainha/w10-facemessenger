@@ -80,8 +80,17 @@
                     // if it's an image field, needs special treatment             
                     var start_img_index
                     if ((start_img_index = cells[j].innerHTML.search("<img src=\"")) > 0) {
-                        var img_url = cells[j].firstElementChild.attributes.href.value;
-                        console.log("image: " + img_url)
+                        var img_url;
+                        if (cells[j].firstElementChild.attributes.href)
+                        {
+                            img_url = cells[j].firstElementChild.attributes.href.value;
+                            //console.log("image: " + img_url)
+                        }
+                        else
+                        {
+                            img_url = cells[j].firstElementChild.attributes.src.value;
+                            //console.log("image: " + img_url)
+                        }
                         row[fieldnames[j]] = img_url
                     } else {
                         row[fieldnames[j]] = cells[j].innerText

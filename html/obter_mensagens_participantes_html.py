@@ -1,4 +1,6 @@
 import sys
+from html_headers import fill_header
+from bs4 import BeautifulSoup
 from pathlib import Path
 import webbrowser
 import sqlite3
@@ -7,7 +9,7 @@ import json
 import shutil
 
 PARTICIPANTS_TEMPLATE_FILE_PATH = "html_participants_template.html"
-MESSAGES_TEMPLATE_FILE_PATH = "html_messages_template.html"
+MESSAGES_TEMPLATE_FILE_PATH = "html_messages_table_template.html"
 NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
 PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\"
 
@@ -42,6 +44,13 @@ MESSAGES_PER_PARTICIPANT_QUERRY = """
                             JOIN user_contact_info as u ON m.sender_id = u.contact_id
                         ORDER BY m.timestamp_ms
                     """
+def create_js_files():
+    try:
+        if not os.path.exists(NEW_FILE_PATH + "\js"):
+            os.makedirs(NEW_FILE_PATH + "\js")
+        shutil.copy2('js\export-to-csv.js', NEW_FILE_PATH + "\js")
+    except IOError as error:
+        print(error)
 
 def function_html_messages_file(template_path):
     # a ideia é a função function_write_messages_to_html criar os seus próprios ficheiros html de mensagens
@@ -72,6 +81,11 @@ def function_write_messages_to_html(database_path, template_path):
         cta_subtitle = str(row[9])
         cta_type = str(row[10])
         cta_url_mimetype = str(row[11])
+
+        #beautiful soup variables
+        html_doc_new_file = ""
+        td_message = ""
+
         # if is the first conversation file...
         if thread_key == 0:
             thread_key = new_thread_key
@@ -80,27 +94,20 @@ def function_write_messages_to_html(database_path, template_path):
                     os.makedirs(MESSAGES_PATH)
                 new_file_path = MESSAGES_PATH + str(thread_key)+".html"
                 # get template
-                template_file = open(template_path, 'r')
+                template_file = open(template_path, 'r', encoding='utf-8')
+                html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
                 new_file = open(new_file_path, 'w', encoding='utf-8')
-                # get the right place to write
-                for line in template_file:
-                    start_line_index = line.find("</ul>")
-                    # if find the string..
-                    if start_line_index > 0:
-                        new_file.write(
-                            "<li>[" + datetime + "] " + sender_name + " : " + message + "</li>")
-                    # write file till the end..
-                    new_file.write(line)
                 # close files / good practice
                 template_file.close()
-                new_file.close()
             except IOError as error:
                 print(error)
         # if is the same conversation as previous..
         elif thread_key == new_thread_key:
             try:
                 previous_file_path = MESSAGES_PATH + str(thread_key) + ".html"
-                previous_file = open(new_file_path, 'a', encoding='utf-8')
+                f = open(previous_file_path, 'r', encoding='utf-8')
+                html_doc_new_file = BeautifulSoup(f, features='html.parser')
+                new_file = open(previous_file_path, 'w', encoding='utf-8')
                 # write all participants on the right spot
                 # TODO: Verificar se message = null;
                 # Se for um attachment poderá ser:
@@ -109,24 +116,27 @@ def function_write_messages_to_html(database_path, template_path):
                 #  - uma imagem (preview_url + title_text + subtitle_text + )
                 #  - uma chamada perdida (title_text + subtitle_text)
                 if not message or message == 'None':
-                    if "xma_rtc" in cta_type:
-                        previous_file.write(
-                            "<li>[" + datetime + "]" + sender_name + " : " + cta_title + " - " + cta_subtitle + "</li>")
+                    if "xma_rtc" in cta_type: #o que é xma_rtc?
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(cta_title + " - "+ cta_subtitle)
                     # se não tiver "xma_rtc" há de ser outra coisa, e sempre assim
                     elif "image" in cta_url_mimetype:
-                        previous_file.write(
-                            "<li>[" + datetime + "]" + sender_name + " : ""<img src="+cta_preview_url+"></img></li>")
+                        td_image = html_doc_new_file.new_tag('img')
+                        td_image['src'] = cta_preview_url
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(td_image)
                     # TODO: continuar esta parte, verificar também nos outros casos de threadkey
                     elif "audio" in cta_url_mimetype:
-                        previous_file.write(
-                            "<li>[" + datetime + "]" + sender_name + " : Audio - " + cta_title + " - " + cta_subtitle + "</li>")
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append("Audio - "+ cta_title + " - "+ cta_subtitle)
                     elif "video" in cta_url_mimetype:
-                        previous_file.write(
-                            "<li>[" + datetime + "]" + sender_name + " : Video - " + cta_title + " - " + cta_subtitle + "</li>")
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append("Video - "+ cta_title + " - "+ cta_subtitle)
                 else:
-                    previous_file.write(
-                        "<li>[" + datetime + "]" + sender_name + " : " + message + "</li>")
-                previous_file.close()
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(message)
+                # close files / good practice
+                f.close()
             except IOError as error:
                 print(error)
         # if is a new conversation..
@@ -135,29 +145,57 @@ def function_write_messages_to_html(database_path, template_path):
             counter = counter + 1
             new_file_path = MESSAGES_PATH + str(thread_key)+".html"
             # avoid file overwrite, check if file exists
-            if Path(MESSAGES_PATH + str(new_thread_key)+".html").is_file():
+            if Path(new_file_path).is_file():
                 try:
-                    new_file = open(new_file_path, 'a', encoding='utf-8')
+                    f = open(new_file_path, 'r', encoding='utf-8')
+                    html_doc_new_file = BeautifulSoup(f, features='html.parser')
+                    f.close()
                 except IOError as error:
                     print(error)
             else:
                 try:
-                    new_file = open(new_file_path, 'w+', encoding='utf-8')
+                    # new file, get template_file
+                    template_file = open(template_path, 'r', encoding='utf-8')
+                    html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
+                    template_file.close()
                 except IOError as error:
                     print(error)
-            try:
-                new_file.write("<li>[" + datetime + "]" +
-                               sender_name + " : " + message + "</li>")
-                new_file.close()
-            except IOError as error:
-                print(error)
+            #open according file
+            new_file =  open(new_file_path, 'w', encoding='utf-8')
+            #add <td> message according to previous Path(new_file_path).is_file() statements
+            td_message = html_doc_new_file.new_tag('td')
+            td_message.append(message)
+        
+        #add <tr> to new file, according to previous thread_key statements(ifs)
+        try:
+            tr_tag = html_doc_new_file.new_tag('tr')
+            td_datetime = html_doc_new_file.new_tag('td')
+            td_datetime.append(datetime)
+            td_sender = html_doc_new_file.new_tag('td')
+            td_sender.append(sender_name)
+            tr_tag.append(td_datetime)
+            tr_tag.append(td_sender)
+            tr_tag.append(td_message)
+            html_doc_new_file.table.append(tr_tag)
+            new_file.seek(0)
+            new_file.write(html_doc_new_file.prettify())
+            new_file.truncate()
+
+            has_header = html_doc_new_file.find_all("p", attrs={"id": "filename"})
+            if (not has_header):
+                fill_header(database_path, new_file_path)
+
+            # close files / good practice
+            new_file.close()
+        except IOError as error:
+            print(error)
 
 def function_html_participants_file(template_path, new_file_path):
     try:
         # get template
-        template_file = open(template_path, 'r')
+        template_file = open(template_path, 'r', encoding='utf-8')
         new_file_path = new_file_path + "participants.html"
-        new_file = open(new_file_path, 'w')
+        new_file = open(new_file_path, 'w', encoding='utf-8')
         # get the right place to write
         for line in template_file:
             start_line_index = line.find("</table>")
@@ -238,9 +276,11 @@ def function_write_participants_to_html(database_path, obj_file):
                     break
 
 try:
+    create_js_files()
     function_html_participants_file(
         PARTICIPANTS_TEMPLATE_FILE_PATH, NEW_FILE_PATH)
     function_html_messages_file(MESSAGES_TEMPLATE_FILE_PATH)
+    fill_header(DB_PATH, NEW_FILE_PATH + 'participants.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'participants.html')
 except IOError as error:
     print(error)

@@ -9,9 +9,10 @@ def fill_header(src_filename, dst_filename):
     filename = src_filename
     hashsum = sha256sum(src_filename)
     timestamp = datetime.now(timezone.utc)
-    with open(dst_filename, 'r+') as file:
+    with open(dst_filename, 'r+', encoding='utf-8') as file:
         html_doc = BeautifulSoup(file, features='html.parser')
         filename_tag = html_doc.new_tag('p')
+        filename_tag['id'] = 'filename'
         filename_tag.string = f'File: {filename}'
         hashsum_tag = html_doc.new_tag('p')
         hashsum_tag.string = f'Hash (SHA256): {hashsum}'
