@@ -9,7 +9,7 @@ import json
 import shutil
 
 PARTICIPANTS_TEMPLATE_FILE_PATH = "html_participants_template.html"
-MESSAGES_TEMPLATE_FILE_PATH = "html_messages_table_template.html"
+MESSAGES_TEMPLATE_FILE_PATH = "html_messages_template.html"
 NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
 PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\"
 
@@ -38,10 +38,12 @@ MESSAGES_PER_PARTICIPANT_QUERRY = """
                         SELECT m.thread_key, datetime((m.timestamp_ms)/1000,'unixepoch'), 
                                 u.contact_id, m.sender_id, u.name, m.text, 
                                 a.preview_url, a.playable_url, a.title_text,
-                                a.subtitle_text, a.default_cta_type, a.playable_url_mime_type
+                                a.subtitle_text, a.default_cta_type, a.playable_url_mime_type,
+                                a.filename, r.reaction, (SELECT name FROM contacts WHERE id = r.actor_id)
                         FROM messages as m 
                             LEFT JOIN attachments AS a ON m.message_id = a.message_id
                             JOIN user_contact_info as u ON m.sender_id = u.contact_id
+                            LEFT JOIN reactions AS r ON m.message_id = r.message_id
                         ORDER BY m.timestamp_ms
                     """
 def create_js_files():
@@ -58,6 +60,7 @@ def function_html_messages_file(template_path):
     function_write_messages_to_html(DB_PATH, template_path)
 
 def function_write_messages_to_html(database_path, template_path):
+
     # connect to database
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
@@ -76,16 +79,20 @@ def function_write_messages_to_html(database_path, template_path):
         datetime = str(row[1])
         sender_name = str(row[4])
         message = str(row[5])
-        cta_preview_url = str(row[6])
-        cta_title = str(row[8])
-        cta_subtitle = str(row[9])
-        cta_type = str(row[10])
-        cta_url_mimetype = str(row[11])
+        attachment_preview_url = str(row[6])
+        attachment_playable_url = str(row[7])
+        attachment_title = str(row[8])
+        attachment_subtitle = str(row[9])
+        attachment_type = str(row[10])
+        attachment_url_mimetype = str(row[11])
+        attachment_filename = str(row[12])
+        reaction = str(row[13])
+        reaction_sender = str(row[14])
 
         #beautiful soup variables
         html_doc_new_file = ""
         td_message = ""
-
+       
         # if is the first conversation file...
         if thread_key == 0:
             thread_key = new_thread_key
@@ -108,33 +115,6 @@ def function_write_messages_to_html(database_path, template_path):
                 f = open(previous_file_path, 'r', encoding='utf-8')
                 html_doc_new_file = BeautifulSoup(f, features='html.parser')
                 new_file = open(previous_file_path, 'w', encoding='utf-8')
-                # write all participants on the right spot
-                # TODO: Verificar se message = null;
-                # Se for um attachment poderá ser:
-                #  - um video: (preview_url + url video + title_text + subtitle_text)
-                #  - um attachment: (preview_url + title_text + subtitle_text + default_cta_title )
-                #  - uma imagem (preview_url + title_text + subtitle_text + )
-                #  - uma chamada perdida (title_text + subtitle_text)
-                if not message or message == 'None':
-                    if "xma_rtc" in cta_type: #o que é xma_rtc?
-                        td_message = html_doc_new_file.new_tag('td')
-                        td_message.append(cta_title + " - "+ cta_subtitle)
-                    # se não tiver "xma_rtc" há de ser outra coisa, e sempre assim
-                    elif "image" in cta_url_mimetype:
-                        td_image = html_doc_new_file.new_tag('img')
-                        td_image['src'] = cta_preview_url
-                        td_message = html_doc_new_file.new_tag('td')
-                        td_message.append(td_image)
-                    # TODO: continuar esta parte, verificar também nos outros casos de threadkey
-                    elif "audio" in cta_url_mimetype:
-                        td_message = html_doc_new_file.new_tag('td')
-                        td_message.append("Audio - "+ cta_title + " - "+ cta_subtitle)
-                    elif "video" in cta_url_mimetype:
-                        td_message = html_doc_new_file.new_tag('td')
-                        td_message.append("Video - "+ cta_title + " - "+ cta_subtitle)
-                else:
-                    td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(message)
                 # close files / good practice
                 f.close()
             except IOError as error:
@@ -162,20 +142,83 @@ def function_write_messages_to_html(database_path, template_path):
                     print(error)
             #open according file
             new_file =  open(new_file_path, 'w', encoding='utf-8')
-            #add <td> message according to previous Path(new_file_path).is_file() statements
-            td_message = html_doc_new_file.new_tag('td')
-            td_message.append(message)
         
         #add <tr> to new file, according to previous thread_key statements(ifs)
         try:
+            # TODO: Verificar se message = null;
+            # Se for um attachment poderá ser:
+            #  - um video: (preview_url + url video + title_text + subtitle_text)
+            #  - um attachment: (preview_url + title_text + subtitle_text + default_attachment_title )
+            #  - uma imagem (preview_url + title_text + subtitle_text + )
+            #  - uma chamada perdida (title_text + subtitle_text)
+            if not message or message=="" or message=='None':
+                if attachment_type=="xma_rtc_ended_video": #o que é xma_rtc?
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append("Ended "+attachment_title + " - "+ attachment_subtitle)
+                elif attachment_type=="xma_rtc_missed_video": #o que é xma_rtc?
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(attachment_title + " at "+ attachment_subtitle)
+                elif "xma_rtc" in attachment_type:
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(attachment_title + " - "+ attachment_subtitle)
+                elif "application" in attachment_url_mimetype:
+                    filetype = attachment_url_mimetype.split('/')[1]
+                    href_tag = html_doc_new_file.new_tag('a')
+                    href_tag['href']=attachment_playable_url
+                    href_tag.append("["+filetype+"] " + attachment_filename)
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(href_tag)
+                # se não tiver "xma_rtc" há de ser outra coisa, e sempre assim
+                elif "image" in attachment_url_mimetype:
+                    img_tag = html_doc_new_file.new_tag('img')
+                    img_tag['src'] = attachment_preview_url
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(img_tag)
+                # TODO: continuar esta parte, verificar também nos outros casos de threadkey
+                elif "audio" in attachment_url_mimetype:
+                    href_tag = html_doc_new_file.new_tag('a')
+                    href_tag['href'] = attachment_playable_url
+                    href_tag.append("Audio - "+ attachment_title + " - "+ attachment_subtitle)
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(href_tag)
+                elif "video" in attachment_url_mimetype:
+                    img_tag = html_doc_new_file.new_tag('img')
+                    img_tag['src'] = attachment_preview_url
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(img_tag)
+                    td_message.append("Video - "+ attachment_title + " - "+ attachment_subtitle)
+                else:
+                    img_tag = html_doc_new_file.new_tag('img')
+                    img_tag['src'] = attachment_preview_url
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(img_tag)
+            elif "xma_web_url" in attachment_type:
+                href_tag = html_doc_new_file.new_tag('a')
+                href_tag['href'] = message
+                img_tag = html_doc_new_file.new_tag('img')
+                img_tag['src'] = attachment_preview_url
+                href_tag.append(img_tag)
+                td_message = html_doc_new_file.new_tag('td')
+                td_message.append(href_tag)
+                td_message.append(message + " - " + attachment_title + " - "+ attachment_subtitle)
+            else:
+                td_message = html_doc_new_file.new_tag('td')
+                td_message.append(message)
+            
             tr_tag = html_doc_new_file.new_tag('tr')
             td_datetime = html_doc_new_file.new_tag('td')
             td_datetime.append(datetime)
             td_sender = html_doc_new_file.new_tag('td')
             td_sender.append(sender_name)
+            td_reaction = html_doc_new_file.new_tag('td')
+            td_reaction.append(reaction)
+            td_reaction_sender = html_doc_new_file.new_tag('td')
+            td_reaction_sender.append(reaction_sender)
             tr_tag.append(td_datetime)
             tr_tag.append(td_sender)
             tr_tag.append(td_message)
+            tr_tag.append(td_reaction)
+            tr_tag.append(td_reaction_sender)
             html_doc_new_file.table.append(tr_tag)
             new_file.seek(0)
             new_file.write(html_doc_new_file.prettify())
