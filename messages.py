@@ -1,19 +1,20 @@
 import sys
-from html_headers import fill_header
+import os
+import shutil
+import json
+import sqlite3
+import webbrowser
+from headers import fill_header
 from bs4 import BeautifulSoup
 from pathlib import Path
-import webbrowser
-import sqlite3
-import os
-import json
-import shutil
 
-PARTICIPANTS_TEMPLATE_FILE_PATH = "html_participants_template.html"
-MESSAGES_TEMPLATE_FILE_PATH = "html_messages_template.html"
-NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
-PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\"
+PARTICIPANTS_TEMPLATE_FILENAME = r'templates\template_participants.html'
+MESSAGES_TEMPLATE_FILENAME = r'templates\template_messages.html'
+NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
+PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
 
-# get id present in db file name
+# XXX Get id present in db file name
+# TODO Extract into common method
 auth_id = 0
 try:
     f_data = open(PATH + 'data', 'r')
@@ -47,10 +48,11 @@ MESSAGES_PER_PARTICIPANT_QUERRY = """
                         ORDER BY m.timestamp_ms
                     """
 def create_js_files():
+    # XXX Duplicate from contacts.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
             os.makedirs(NEW_FILE_PATH + "\js")
-        shutil.copy2('js\export-to-csv.js', NEW_FILE_PATH + "\js")
+        shutil.copy2('templates\js\export-to-csv.js', NEW_FILE_PATH + "\js")
     except IOError as error:
         print(error)
 
@@ -318,12 +320,12 @@ def function_write_participants_to_html(database_path, obj_file):
                     print(error)
                     break
 
-try:
+def main():
     create_js_files()
-    function_html_participants_file(
-        PARTICIPANTS_TEMPLATE_FILE_PATH, NEW_FILE_PATH)
-    function_html_messages_file(MESSAGES_TEMPLATE_FILE_PATH)
+    function_html_participants_file(PARTICIPANTS_TEMPLATE_FILENAME, NEW_FILE_PATH)
+    function_html_messages_file(MESSAGES_TEMPLATE_FILENAME)
     fill_header(DB_PATH, NEW_FILE_PATH + 'participants.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'participants.html')
-except IOError as error:
-    print(error)
+
+if __name__ == '__main__':
+    main()

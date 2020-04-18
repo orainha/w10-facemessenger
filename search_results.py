@@ -4,9 +4,8 @@ import os
 import json
 import bs4
 
-# XXX (ricardoapl) These will probably go away once we get into Autospy
 REPORT_FILENAME = 'report_user_search.html'
-TEMPLATE_FILENAME = 'template_user_search.html'
+TEMPLATE_FILENAME = r'templates\template_search_results.html'
 
 def extract(dirpath, filepath):
     """Extract data from dirpath into filepath by running hindsight.exe."""

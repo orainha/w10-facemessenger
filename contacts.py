@@ -1,23 +1,41 @@
-from pathlib import Path
-from html_headers import fill_header
 import sys
-import webbrowser
-import sqlite3
-import shutil
 import os
+import shutil
+import json
+import sqlite3
+import webbrowser
+from pathlib import Path
+from headers import fill_header
 
-CONTACTS_TEMPLATE_FILE_PATH = "html_contacts_template.html"
-NEW_FILE_PATH = str(Path.home()) + "\\AppData\\Local\\Temp\\"
-DB_PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\msys_100047488492327.db"
+CONTACTS_TEMPLATE_FILE_PATH = r'templates\template_contacts.html'
+NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
+PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
 CONTACTS_QUERRY = "SELECT c.id, c.profile_picture_url, c.name, u.phone_number, u.email_address, c.profile_picture_large_url \
     FROM contacts as c JOIN user_contact_info as u ON c.id = u.contact_id \
     ORDER BY c.name"
 
+# XXX Get id present in db file name
+# TODO Extract into common method
+auth_id = 0
+try:
+    f_data = open(PATH + 'data', 'r')
+    data = json.load(f_data)
+    for item in data:
+        txt = item.split(":")
+        auth_id = txt[1]
+        break
+    db_file_name = "msys_" + auth_id + ".db"
+except IOError as error:
+    print(error)
+
+DB_PATH = PATH + db_file_name
+
 def create_js_files():
+    # XXX Duplicate from messages.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
             os.makedirs(NEW_FILE_PATH + "\js")
-        shutil.copy2('js\export-to-csv.js', NEW_FILE_PATH + "\js")
+        shutil.copy2('templates\js\export-to-csv.js', NEW_FILE_PATH + "\js")
     except IOError as error:
         print(error)
 
@@ -76,10 +94,11 @@ def function_write_contacts_to_html(database_path, obj_file):
             print(error)
             break
 
-try:
+def main():
     create_js_files()
     function_html_contacts_file(CONTACTS_TEMPLATE_FILE_PATH, NEW_FILE_PATH)
     fill_header(DB_PATH, NEW_FILE_PATH + 'contacts.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'contacts.html')
-except IOError as error:
-    print(error)
+
+if __name__ == '__main__':
+    main()
