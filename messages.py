@@ -40,7 +40,8 @@ MESSAGES_PER_PARTICIPANT_QUERRY = """
                                 u.contact_id, m.sender_id, u.name, m.text, 
                                 a.preview_url, a.playable_url, a.title_text,
                                 a.subtitle_text, a.default_cta_type, a.playable_url_mime_type,
-                                a.filename, r.reaction, (SELECT name FROM contacts WHERE id = r.actor_id)
+                                a.filename, r.reaction, (SELECT name FROM contacts WHERE id = r.actor_id),
+                                a.playable_duration_ms/1000
                         FROM messages as m 
                             LEFT JOIN attachments AS a ON m.message_id = a.message_id
                             JOIN user_contact_info as u ON m.sender_id = u.contact_id
@@ -90,6 +91,7 @@ def function_write_messages_to_html(database_path, template_path):
         attachment_filename = str(row[12])
         reaction = str(row[13])
         reaction_sender = str(row[14])
+        attachment_duration = str(row[15]) 
 
         #beautiful soup variables
         html_doc_new_file = ""
@@ -188,7 +190,10 @@ def function_write_messages_to_html(database_path, template_path):
                     img_tag['src'] = attachment_preview_url
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(img_tag)
-                    td_message.append("Video - "+ attachment_title + " - "+ attachment_subtitle)
+                    duration = "["+attachment_duration+"s]" if attachment_duration!="None" else ""
+                    title = " - " + attachment_title if attachment_title!="None" else ""
+                    subtitle = " - " + attachment_subtitle if attachment_subtitle!="None" else ""
+                    td_message.append("Video " + duration + title + subtitle)
                 else:
                     img_tag = html_doc_new_file.new_tag('img')
                     img_tag['src'] = attachment_preview_url

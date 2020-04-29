@@ -10,7 +10,7 @@ def fill_header(src_filename, dst_filename):
     hashsum = sha256sum(src_filename)
     timezone = datetime.timezone.utc
     timestamp = datetime.datetime.now(timezone)
-    with open(dst_filename, 'r', encoding='utf-8') as file:
+    with open(dst_filename, 'r', encoding='utf-8', errors='ignore') as file:
         html = bs4.BeautifulSoup(file, features='html.parser')
     filename_tag = html.new_tag('p')
     filename_tag['id'] = 'filename'
