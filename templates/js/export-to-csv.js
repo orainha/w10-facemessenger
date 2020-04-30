@@ -8,7 +8,7 @@
     'use strict'
     var btn_export = document.getElementById('export_csv')
 
-    function convertArrayOfObjectsToCSV(args) {
+    function convertArrayOfObjectsToCSV(args, col_delimiter) {
         var result, ctr, keys, columnDelimiter, lineDelimiter, data;
 
         data = args.data || null;
@@ -16,7 +16,7 @@
             return null;
         }
 
-        columnDelimiter = args.columnDelimiter || ',';
+        columnDelimiter = args.columnDelimiter || col_delimiter;
         lineDelimiter = args.lineDelimiter || '\n';
 
         keys = Object.keys(data[0]);
@@ -41,9 +41,14 @@
 
     function downloadCSV(args) {
         var data, filename, link;
+        //show popup
+        var col_delimiter = prompt("Choose column delimiter. (Default: , ) (Recommended: » )", ",");
+        if (col_delimiter == null || col_delimiter == "") {
+            col_delimiter = ",";
+          }
         var csv = convertArrayOfObjectsToCSV({
             data: args.data
-        });
+        }, col_delimiter);
         if (csv == null) return;
 
         filename = args.filename || 'export.csv';
