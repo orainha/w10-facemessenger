@@ -15,9 +15,11 @@ NEW_FILE_PATH = ''
 PATH = ''
 DB_PATH = ''
 
-CONTACTS_QUERRY = "SELECT c.id, c.profile_picture_url, c.name, u.phone_number, u.email_address, c.profile_picture_large_url \
-    FROM contacts as c JOIN user_contact_info as u ON c.id = u.contact_id \
-    ORDER BY c.name"
+CONTACTS_QUERRY = """
+    SELECT id, profile_picture_url, name, phone_number, email_address, profile_picture_large_url
+    FROM contacts
+    ORDER BY name
+    """
 
 # XXX Get id present in db file name
 # TODO Extract into common method
