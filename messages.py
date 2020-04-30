@@ -7,28 +7,24 @@ import webbrowser
 from headers import fill_header
 from bs4 import BeautifulSoup
 from pathlib import Path
+import argparse
 
 PARTICIPANTS_TEMPLATE_FILENAME = r'templates\template_participants.html'
 MESSAGES_TEMPLATE_FILENAME = r'templates\template_messages.html'
-NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
-PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
+#NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
+#PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
+#DB_PATH = PATH + db_file_name
+#MESSAGES_PATH = NEW_FILE_PATH + "msgs\\"
+
+NEW_FILE_PATH = ''
+MESSAGES_PATH = ''
+PATH = ''
+DB_PATH = ''
+auth_id = 0
 
 # XXX Get id present in db file name
 # TODO Extract into common method
-auth_id = 0
-try:
-    f_data = open(PATH + 'data', 'r')
-    data = json.load(f_data)
-    for item in data:
-        txt = item.split(":")
-        auth_id = txt[1]
-        break
-    db_file_name = "msys_" + auth_id + ".db"
-except IOError as error:
-    print(error)
 
-DB_PATH = PATH + db_file_name
-MESSAGES_PATH = NEW_FILE_PATH + "msgs\\"
 PARTICIPANTS_QUERRY = """
                         SELECT c.profile_picture_url, c.name, c.profile_picture_large_url, 
                                 p.thread_key, p.contact_id, p.nickname
@@ -58,14 +54,8 @@ def create_js_files():
         print(error)
 
 def function_html_messages_file(template_path):
-    # a ideia é a função function_write_messages_to_html criar os seus próprios ficheiros html de mensagens
-    # devem receber um template e criam cada ficheiro baseado nesse template
-    function_write_messages_to_html(DB_PATH, template_path)
-
-def function_write_messages_to_html(database_path, template_path):
-
     # connect to database
-    conn = sqlite3.connect(database_path)
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(MESSAGES_PER_PARTICIPANT_QUERRY)
     # variable initialization
@@ -233,38 +223,26 @@ def function_write_messages_to_html(database_path, template_path):
 
             has_header = html_doc_new_file.find_all("p", attrs={"id": "filename"})
             if (not has_header):
-                fill_header(database_path, new_file_path)
+                fill_header(DB_PATH, new_file_path)
 
             # close files / good practice
             new_file.close()
         except IOError as error:
             print(error)
 
-def function_html_participants_file(template_path, new_file_path):
-    try:
-        # get template
-        template_file = open(template_path, 'r', encoding='utf-8')
-        new_file_path = new_file_path + "participants.html"
-        new_file = open(new_file_path, 'w', encoding='utf-8')
-        # get the right place to write
-        for line in template_file:
-            start_line_index = line.find("</table>")
-            # if find the string...
-            if start_line_index > 0:
-                # write all participants on the right spot
-                function_write_participants_to_html(DB_PATH, new_file)
-            # write file till the end...
-            new_file.write(line)
-        template_file.close()
-        new_file.close()
-    except IOError as error:
-        print(error)
+def function_html_participants_file(template_path):
+    #global NEW_FILE_PATH
 
-def function_write_participants_to_html(database_path, obj_file):
     # connect to database
-    conn = sqlite3.connect(database_path)
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(PARTICIPANTS_QUERRY)
+    
+    # get template
+    template_file = open(template_path, 'r', encoding='utf-8')
+    html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
+    new_file = open(NEW_FILE_PATH + "participants.html", 'w', encoding='utf-8')
+    
     # variable initialization
     counter = 1
     thread_key = 0
@@ -279,55 +257,142 @@ def function_write_participants_to_html(database_path, obj_file):
         # if is the first conversation file...
         if thread_key == 0:
             thread_key = new_thread_key
-            try:
-                obj_file.write("""
-                    <tr><td></td><td>Conversation: """ + str(counter) + """</td><td></td></tr>
-                    <tr>
-                        <td></td>
-                        <td><a href=\'""" + str(participant_large_pic) + """\'><img src=\'""" + str(participant_pic) + """\'></img></a></td>
-                        <td><a href=\'msgs\\""" + str(thread_key) + """.html\'>""" + str(participant_name) + """</a></td>
-                    </tr>
-                """)
-            except IOError as error:
-                print(error)
-                break
+            
+            tr_tag = html_doc_new_file.new_tag('tr')
+            td_empty = html_doc_new_file.new_tag('td')
+            td_conversation = html_doc_new_file.new_tag('td')
+            td_conversation.append(f"Conversation: {str(counter)}")
+            tr_tag.append(td_empty)
+            tr_tag.append(td_conversation)
+            html_doc_new_file.table.append(tr_tag)
+
         # if is the same conversation as previous..
         elif thread_key == new_thread_key:
             suspect_contact_id = auth_id
             if (str(participant_contact_id) != str(suspect_contact_id)):
-                try:
-                    obj_file.write("""
-                        <tr>
-                            <td></td>
-                            <td><a href=\'""" + str(participant_large_pic) + """\'><img src=\'""" + str(participant_pic) + """\'></img></a></td>
-                            <td><a href=\'msgs\\""" + str(thread_key) + """.html\'>""" + str(participant_name) + """</a></td>
-                        </tr>
-                    """)
-                except IOError as error:
-                    print(error)
-                    break
+                pass
+            else:
+                continue
         # if is a new conversation..
         elif thread_key != new_thread_key:
             suspect_contact_id = auth_id
             if (str(participant_contact_id) != str(suspect_contact_id)):
                 thread_key = new_thread_key
                 counter = counter + 1
-                try:
-                    obj_file.write("""
-                        <tr><td></td><td>Conversation: """ + str(counter) + """</td><td></td></tr>
-                        <tr>
-                            <td></td>
-                            <td><a href=\'""" + str(participant_large_pic) + """\'><img src=\'""" + str(participant_pic) + """\'></img></a></td>
-                            <td><a href=\'msgs\\""" + str(thread_key) + """.html\'>""" + str(participant_name) + """</a></td>
-                        </tr>
-                    """)
-                except IOError as error:
-                    print(error)
-                    break
+
+                tr_tag = html_doc_new_file.new_tag('tr')
+                td_empty = html_doc_new_file.new_tag('td')
+                td_conversation = html_doc_new_file.new_tag('td')
+                td_conversation.append(f"Conversation: {str(counter)}")
+                tr_tag.append(td_empty)
+                tr_tag.append(td_conversation)
+                html_doc_new_file.table.append(tr_tag)
+            else:
+                continue
+
+        tr_tag_data = html_doc_new_file.new_tag('tr')
+        td_empty2 = html_doc_new_file.new_tag('td')
+        td_pic = html_doc_new_file.new_tag('td')
+        href_pic_tag = html_doc_new_file.new_tag('a')
+        href_pic_tag["href"]=str(participant_large_pic)
+        img_tag = html_doc_new_file.new_tag('img')
+        img_tag["src"]=str(participant_pic)
+        href_pic_tag.append(img_tag)
+        td_pic.append(href_pic_tag)
+        
+        td_msgs = html_doc_new_file.new_tag('td')
+        href_msgs_tag = html_doc_new_file.new_tag('a')
+        href_msgs_tag["href"]=f'msgs\{str(thread_key)}.html'
+        href_msgs_tag.append(str(participant_name))
+        td_msgs.append(href_msgs_tag)
+
+        tr_tag_data.append(td_empty2)
+        tr_tag_data.append(td_pic)
+        tr_tag_data.append(td_msgs)
+
+        html_doc_new_file.table.append(tr_tag_data)
+
+    new_file.seek(0)
+    new_file.write(html_doc_new_file.prettify())
+    new_file.truncate()
+
+def export_to_csv(delimiter): 
+    #TODO: Inserir código para exportação csv  
+    print ("Exported to CSV with delimiter: " + delimiter)
+
+def input_file_path(path):
+    #TODO: procurar por utilizadores dando apenas o drive?
+    global DB_PATH
+    global PATH
+    global auth_id
+    #get full path
+    PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    #get db file name
+    try:
+        if os.path.exists(PATH):
+            f_data = open(PATH + 'data', 'r')
+            data = json.load(f_data)
+            for item in data:
+                txt = item.split(":")
+                auth_id = txt[1]
+                break
+            db_file_name = "msys_" + auth_id + ".db"
+            DB_PATH = PATH + db_file_name
+            #print("Application path is " + PATH)
+            #print("Database path is " + DB_PATH)
+        else:
+            raise IOError("Error: File not found on given path")
+    except IOError as error:
+        print(error)
+        exit()
+
+def output_file_path(path):
+    global NEW_FILE_PATH 
+    global MESSAGES_PATH 
+    
+    path = os.path.expandvars(path)
+    NEW_FILE_PATH = path + "\\report\\"
+    MESSAGES_PATH = NEW_FILE_PATH + "msgs\\"
+    try:
+        if not os.path.exists(path):
+            raise IOError ("Error: Given destination output path not found")
+        if not os.path.exists(NEW_FILE_PATH):
+            os.makedirs(NEW_FILE_PATH)
+        if not os.path.exists(MESSAGES_PATH):
+            os.makedirs(MESSAGES_PATH)
+        #print("Report will be saved on " + NEW_FILE_PATH)
+        #print("Messages path is " + MESSAGES_PATH)
+    except IOError as error:
+        print(error)
+        exit()
+
+def load_command_line_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
+    parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
+    #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
+    #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
+
+    args = parser.parse_args()
+    
+    export_options = {"csv" : export_to_csv}
+    file_options = {"input" : input_file_path, "output" : output_file_path}
+
+    #for each argument (key=>value)
+    for arg, value in vars(args).items():
+        if value is not None and arg=='export':
+            delimiter = args.delimiter if args.delimiter is not None else ','
+            export_options[value](delimiter)
+        elif value is not None and arg!='delimiter':
+            file_options[arg](value)
 
 def main():
+    load_command_line_arguments()
     create_js_files()
-    function_html_participants_file(PARTICIPANTS_TEMPLATE_FILENAME, NEW_FILE_PATH)
+    function_html_participants_file(PARTICIPANTS_TEMPLATE_FILENAME)
     function_html_messages_file(MESSAGES_TEMPLATE_FILENAME)
     fill_header(DB_PATH, NEW_FILE_PATH + 'participants.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'participants.html')
