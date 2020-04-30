@@ -46,7 +46,8 @@ def function_html_contacts_file(database_path, template_path):
     template_file = open(template_path, 'r', encoding='utf-8')
     html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
     new_file = open(NEW_FILE_PATH + "contacts.html", 'w', encoding='utf-8')
-
+    template_file.close()
+    
     # variable initialization
     contact_counter = 1
     for row in c:
@@ -97,8 +98,8 @@ def function_html_contacts_file(database_path, template_path):
 def export_to_csv(delimiter):   
     print ("Exported to CSV with delimiter: " + delimiter)
 
-def input_file(path):
-    #todo: procurar por utilizadores dando apenas o drive?
+def input_file_path(path):
+    #TODO: procurar por utilizadores dando apenas o drive?
     global DB_PATH
     #get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
@@ -106,7 +107,6 @@ def input_file(path):
     try:
         if os.path.exists(PATH):
             auth_id = 0
-            #print (PATH+'data')
             f_data = open(PATH + 'data', 'r')
             data = json.load(f_data)
             for item in data:
@@ -121,7 +121,7 @@ def input_file(path):
         print(error)
         exit()
 
-def output_file(path):
+def output_file_path(path):
     global NEW_FILE_PATH 
     path = os.path.expandvars(path)
     NEW_FILE_PATH = path + "\\report\\"
@@ -130,7 +130,6 @@ def output_file(path):
             raise IOError ("Error: Given destination output path not found")
         if not os.path.exists(NEW_FILE_PATH):
             os.makedirs(NEW_FILE_PATH)
-        #print (f'Report files saved on: {NEW_FILE_PATH}')
     except IOError as error:
         print(error)
         exit()
@@ -141,13 +140,14 @@ def load_command_line_arguments():
     parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
     #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
     #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    parser.add_argument('-i','--input', help=r'Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Save report path')
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
 
     args = parser.parse_args()
     
     export_options = {"csv" : export_to_csv}
-    file_options = {"input" : input_file, "output" : output_file}
+    file_options = {"input" : input_file_path, "output" : output_file_path}
 
     for arg, value in vars(args).items():
         if value is not None and arg=='export':
