@@ -3,9 +3,13 @@ import sys
 import os
 import json
 import bs4
+import argparse
 
 REPORT_FILENAME = 'report_user_search.html'
 TEMPLATE_FILENAME = r'templates\template_search_results.html'
+NEW_FILE_PATH = ''
+DB_PATH = ''
+PATH = ''
 
 def extract(dirpath, filepath):
     """Extract data from dirpath into filepath by running hindsight.exe."""
@@ -86,8 +90,73 @@ def append(data, html):
         row_tag.append(url_tag)
         tbody.append(row_tag)
 
+def export_to_csv(delimiter):
+    #TODO: Insert csv export code   
+    print ("Exported to CSV with delimiter: " + delimiter)
+
+def input_file_path(path):
+    #TODO: procurar por utilizadores dando apenas o drive?
+    global DB_PATH
+    global PATH
+    #get full path
+    PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    #get db file name
+    try:
+        if os.path.exists(PATH):
+            auth_id = 0
+            f_data = open(PATH + 'data', 'r')
+            data = json.load(f_data)
+            for item in data:
+                txt = item.split(":")
+                auth_id = txt[1]
+                break
+            db_file_name = "msys_" + auth_id + ".db"
+            DB_PATH = PATH + db_file_name
+        else:
+            raise IOError("Error: File not found on given path")
+    except IOError as error:
+        print(error)
+        exit()
+
+def output_file_path(path):
+    global NEW_FILE_PATH 
+    path = os.path.expandvars(path)
+    NEW_FILE_PATH = path + "\\report\\"
+    try:
+        if not os.path.exists(path):
+            raise IOError ("Error: Given destination output path not found")
+        if not os.path.exists(NEW_FILE_PATH):
+            os.makedirs(NEW_FILE_PATH)
+    except IOError as error:
+        print(error)
+        exit()  
+
+def load_command_line_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
+    parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
+    #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
+    #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
+
+    args = parser.parse_args()
+    
+    export_options = {"csv" : export_to_csv}
+    file_options = {"input" : input_file_path, "output" : output_file_path}
+
+    for arg, value in vars(args).items():
+        if value is not None and arg=='export':
+            delimiter = args.delimiter if args.delimiter is not None else ','
+            export_options[value](delimiter)
+        elif value is not None and arg!='delimiter':
+            file_options[arg](value)
+
 def main():
-    dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
+    load_command_line_arguments()
+    #dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
+    dirpath = PATH + 'Partitions'
     dirpath = os.path.expandvars(dirpath)
     traverse(dirpath)
     report()
