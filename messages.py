@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import argparse
 
-PARTICIPANTS_TEMPLATE_FILENAME = r'templates\template_participants.html'
+CONVERSATIONS_TEMPLATE_FILENAME = r'templates\template_conversations.html'
 MESSAGES_TEMPLATE_FILENAME = r'templates\template_messages.html'
 #NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
 #PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
@@ -22,13 +22,13 @@ PATH = ''
 DB_PATH = ''
 auth_id = 0
 
-PARTICIPANTS_QUERRY = """
+CONVERSATIONS_QUERRY = """
                         SELECT c.profile_picture_url, c.name, c.profile_picture_large_url, 
                                 p.thread_key, p.contact_id, p.nickname
                         FROM participants as p 
                             JOIN contacts as c on c.id = p.contact_id
                     """
-MESSAGES_PER_PARTICIPANT_QUERRY = """
+MESSAGES_PER_CONVERSATION_QUERRY = """
                         SELECT m.thread_key, datetime((m.timestamp_ms)/1000,'unixepoch'), 
                                 u.contact_id, m.sender_id, u.name, m.text, 
                                 a.preview_url, a.playable_url, a.title_text,
@@ -54,7 +54,7 @@ def function_html_messages_file(template_path):
     # connect to database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(MESSAGES_PER_PARTICIPANT_QUERRY)
+    cursor.execute(MESSAGES_PER_CONVERSATION_QUERRY)
     # variable initialization
     thread_key = 0
     new_thread_key = 1
@@ -233,12 +233,12 @@ def function_html_participants_file(template_path):
     # connect to database
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute(PARTICIPANTS_QUERRY)
+    c.execute(CONVERSATIONS_QUERRY)
     
     # get template
     template_file = open(template_path, 'r', encoding='utf-8')
     html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
-    new_file = open(NEW_FILE_PATH + "participants.html", 'w', encoding='utf-8')
+    new_file = open(NEW_FILE_PATH + "conversations.html", 'w', encoding='utf-8')
     
     # variable initialization
     counter = 1
@@ -390,10 +390,10 @@ def load_command_line_arguments():
 def main():
     load_command_line_arguments()
     create_js_files()
-    function_html_participants_file(PARTICIPANTS_TEMPLATE_FILENAME)
+    function_html_participants_file(CONVERSATIONS_TEMPLATE_FILENAME)
     function_html_messages_file(MESSAGES_TEMPLATE_FILENAME)
-    fill_header(DB_PATH, NEW_FILE_PATH + 'participants.html')
-    webbrowser.open_new_tab(NEW_FILE_PATH + 'participants.html')
+    fill_header(DB_PATH, NEW_FILE_PATH + 'conversations.html')
+    webbrowser.open_new_tab(NEW_FILE_PATH + 'conversations.html')
 
 if __name__ == '__main__':
     main()
