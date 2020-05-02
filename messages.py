@@ -1,13 +1,14 @@
-import sys
 import os
+import sys
 import shutil
+import csv
 import json
 import sqlite3
+import argparse
 import webbrowser
+from pathlib import Path
 from headers import fill_header
 from bs4 import BeautifulSoup
-from pathlib import Path
-import argparse
 
 CONVERSATIONS_TEMPLATE_FILENAME = r'templates\template_conversations.html'
 MESSAGES_TEMPLATE_FILENAME = r'templates\template_messages.html'
@@ -41,6 +42,11 @@ MESSAGES_PER_CONVERSATION_QUERRY = """
                             LEFT JOIN reactions AS r ON m.message_id = r.message_id
                         ORDER BY m.timestamp_ms
                     """
+THREADS_QUERY = """
+    SELECT DISTINCT thread_key
+    FROM threads
+"""
+
 def create_js_files():
     # XXX Duplicate from contacts.py
     try:
@@ -313,9 +319,75 @@ def function_html_participants_file(template_path):
     new_file.write(html_doc_new_file.prettify())
     new_file.truncate()
 
-def export_to_csv(delimiter): 
-    #TODO: Inserir código para exportação csv  
-    print ("Exported to CSV with delimiter: " + delimiter)
+def export_csv_conversations(delim):
+    # XXX (ricardoapl) Remove reference to DB_PATH?
+    with sqlite3.connect(DB_PATH) as connection:
+        cursor = connection.cursor()
+        cursor.execute(CONVERSATIONS_QUERRY)
+        rows = cursor.fetchall()
+        cursor.close()
+    # XXX (ricardoapl) Columns is highly dependant on the query,
+    #     if we change query we also have to change columns.
+    columns = [
+        'profile_picture_url',
+        'name',
+        'profile_picture_large_url',
+        'thread_key',
+        'contact_id',
+        'nickname'
+    ]
+    # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
+    filename = NEW_FILE_PATH + 'conversations.csv'
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
+                            quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(columns)
+        writer.writerows(rows)
+
+def export_csv_messages(delim):
+    # XXX (ricardoapl) Remove reference to DB_PATH?
+    with sqlite3.connect(DB_PATH) as connection:
+        cursor = connection.cursor()
+        cursor.execute(THREADS_QUERY)
+        thread_rows = cursor.fetchall()
+        cursor.execute(MESSAGES_PER_CONVERSATION_QUERRY)
+        msg_rows = cursor.fetchall()
+        cursor.close()
+    # XXX (ricardoapl) Careful! Columns is highly dependant on the query,
+    #     if we change query we also have to change columns.
+    columns = [
+        'thread_key',
+        'datetime',
+        'contact_id',
+        'sender_id',
+        'name',
+        'text',
+        'preview_url',
+        'playable_url',
+        'title_text',
+        'subtitle_text',
+        'default_cta_type',
+        'playable_url_mime_type',
+        'filename',
+        'reaction',
+        'actor_name',
+        'playable_duration_ms'
+    ]
+    thread_idx = columns.index('thread_key')
+    threads = [row[thread_idx] for row in thread_rows]
+    for thread in threads:
+        thread_messages = filter(lambda row: (row[thread_idx] == thread), msg_rows)
+        # XXX (ricardoapl) Remove reference to MESSAGES_PATH?
+        filename = MESSAGES_PATH + str(thread) + '.csv'
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
+                                quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(columns)
+            writer.writerows(thread_messages)
+
+def export_csv(delim):
+    export_csv_conversations(delim)
+    export_csv_messages(delim)
 
 def input_file_path(path):
     #TODO: procurar por utilizadores dando apenas o drive?
@@ -365,20 +437,22 @@ def output_file_path(path):
         exit()
 
 def load_command_line_arguments():
+    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
     parser = argparse.ArgumentParser()
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
     parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
     parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
     #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
     #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
 
     args = parser.parse_args()
     
-    export_options = {"csv" : export_to_csv}
+    export_options = {"csv" : export_csv}
     file_options = {"input" : input_file_path, "output" : output_file_path}
 
+    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
     #for each argument (key=>value)
     for arg, value in vars(args).items():
         if value is not None and arg=='export':
@@ -388,6 +462,7 @@ def load_command_line_arguments():
             file_options[arg](value)
 
 def main():
+    # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
     load_command_line_arguments()
     create_js_files()
     function_html_participants_file(CONVERSATIONS_TEMPLATE_FILENAME)
