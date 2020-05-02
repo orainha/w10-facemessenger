@@ -7,7 +7,7 @@ W10-FaceMessenger is a suite of scripts bundled together to extract the most sig
 As of now, W10-FaceMessenger is capable of extracting the following content:
 - Contacts
 - Conversations (and any messages exchanged within)
-- Images resulting from user searches
+- Cached images (from user profile searches, messages, etc.)
 
 As the name implies, these scripts are designed to work with Windows 10.
 
