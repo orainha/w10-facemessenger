@@ -46,7 +46,7 @@ def create_js_files():
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
             os.makedirs(NEW_FILE_PATH + "\js")
-        shutil.copy2('templates\js\export-to-csv.js', NEW_FILE_PATH + "\js")
+        shutil.copy2('templates\js\csv.js', NEW_FILE_PATH + "\js")
     except IOError as error:
         print(error)
 

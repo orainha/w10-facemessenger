@@ -1,12 +1,9 @@
-// Credits to:
-// Chase Allen, author of "convertArrayOfObjectsToCSV" and "downloadCSV" functions
-// - See https://www.developintelligence.com/blog/2017/04/use-javascript-to-export-your-data-as-csv/ 
-// w3schools.com - JavaScript and HTML DOM Reference
-// - See https://www.w3schools.com/jsref/
+// Credits to Chase Allen, author of "convertArrayOfObjectsToCSV" and "downloadCSV" functions
+// See https://www.developintelligence.com/blog/2017/04/use-javascript-to-export-your-data-as-csv/
 
 (function () {
     'use strict'
-    var btn_export = document.getElementById('export_csv')
+    var btn_export = document.getElementById('csv')
 
     function convertArrayOfObjectsToCSV(args, col_delimiter) {
         var result, ctr, keys, columnDelimiter, lineDelimiter, data;
@@ -45,7 +42,7 @@
         var col_delimiter = prompt("Choose column delimiter. (Default: , ) (Recommended: » )", ",");
         if (col_delimiter == null || col_delimiter == "") {
             col_delimiter = ",";
-          }
+        }
         var csv = convertArrayOfObjectsToCSV({
             data: args.data
         }, col_delimiter);
