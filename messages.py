@@ -22,9 +22,6 @@ PATH = ''
 DB_PATH = ''
 auth_id = 0
 
-# XXX Get id present in db file name
-# TODO Extract into common method
-
 PARTICIPANTS_QUERRY = """
                         SELECT c.profile_picture_url, c.name, c.profile_picture_large_url, 
                                 p.thread_key, p.contact_id, p.nickname
@@ -327,7 +324,8 @@ def input_file_path(path):
     global auth_id
     #get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
-    #get db file name
+    # XXX (ricardoapl) Get id present in db file name
+    # TODO (ricardoapl) Extract into common method
     try:
         if os.path.exists(PATH):
             f_data = open(PATH + 'data', 'r')

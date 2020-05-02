@@ -22,9 +22,6 @@ CONTACTS_QUERRY = """
     ORDER BY name
     """
 
-# XXX Get id present in db file name
-# TODO Extract into common method
-
 def create_js_files():
     # XXX Duplicate from messages.py
     try:
@@ -103,7 +100,8 @@ def input_file_path(path):
     global DB_PATH
     #get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
-    #get db file name
+    # XXX (ricardoapl) Get id present in db file name
+    # TODO (ricardoapl) Extract into common method
     try:
         if os.path.exists(PATH):
             auth_id = 0
