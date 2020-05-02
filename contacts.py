@@ -91,17 +91,27 @@ def function_html_contacts_file(database_path, template_path):
     new_file.close()   
 
 def export_to_csv(delim):
-    # XXX (ricardoapl) Remove reference to DB_PATH?
-    # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
     # TODO (ricardoapl) Extract behavior according to method responsibility (database access, query, etc.)
+    # XXX (ricardoapl) Careful! Columns is highly dependant on the query, if we change query we also have to change columns.
+    columns = [
+        'Id',
+        'Photo',
+        'Name',
+        'Phone',
+        'Email',
+        'Photo(Enlarged)'
+    ]
+    # XXX (ricardoapl) Remove reference to DB_PATH?
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(CONTACTS_QUERRY)
     rows = cursor.fetchall()
     connection.close()
-    with open(NEW_FILE_PATH + 'contacts.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=delim, quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        columns = ['Id', 'Photo', 'Name', 'Phone', 'Email', 'Photo(Enlarged)']
+    # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
+    filename = NEW_FILE_PATH + 'contacts.csv'
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
+                            quoting=csv.QUOTE_MINIMAL)
         writer.writerow(columns)
         writer.writerows(rows)
 
