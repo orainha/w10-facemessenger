@@ -299,7 +299,7 @@ def function_html_participants_file(template_path):
         
         td_msgs = html_doc_new_file.new_tag('td')
         href_msgs_tag = html_doc_new_file.new_tag('a')
-        href_msgs_tag["href"]=f'msgs\{str(thread_key)}.html'
+        href_msgs_tag["href"]=f'messages\{str(thread_key)}.html'
         href_msgs_tag.append(str(participant_name))
         td_msgs.append(href_msgs_tag)
 
@@ -350,7 +350,7 @@ def output_file_path(path):
     
     path = os.path.expandvars(path)
     NEW_FILE_PATH = path + "\\report\\"
-    MESSAGES_PATH = NEW_FILE_PATH + "msgs\\"
+    MESSAGES_PATH = NEW_FILE_PATH + "messages\\"
     try:
         if not os.path.exists(path):
             raise IOError ("Error: Given destination output path not found")
