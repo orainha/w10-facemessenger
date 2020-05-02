@@ -1,13 +1,14 @@
-import sys
 import os
+import sys
 import shutil
+import csv
 import json
 import sqlite3
+import argparse
 import webbrowser
 from pathlib import Path
 from headers import fill_header
 from bs4 import BeautifulSoup
-import argparse
 
 #NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
 #PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
@@ -30,7 +31,6 @@ def create_js_files():
         shutil.copy2('templates\js\csv.js', NEW_FILE_PATH + "\js")
     except IOError as error:
         print(error)
-
 
 def function_html_contacts_file(database_path, template_path):
     global NEW_FILE_PATH
@@ -92,8 +92,20 @@ def function_html_contacts_file(database_path, template_path):
     new_file.truncate()
     new_file.close()   
 
-def export_to_csv(delimiter):   
-    print ("Exported to CSV with delimiter: " + delimiter)
+def export_to_csv(delim):
+    # XXX (ricardoapl) Remove reference to DB_PATH?
+    # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
+    # TODO (ricardoapl) Extract behavior according to method responsibility (database access, query, etc.)
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+    cursor.execute(CONTACTS_QUERRY)
+    rows = cursor.fetchall()
+    connection.close()
+    with open(NEW_FILE_PATH + 'contacts.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=delim, quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        columns = ['Id', 'Photo', 'Name', 'Phone', 'Email', 'Photo(Enlarged)']
+        writer.writerow(columns)
+        writer.writerows(rows)
 
 def input_file_path(path):
     #TODO: procurar por utilizadores dando apenas o drive?
@@ -133,20 +145,22 @@ def output_file_path(path):
         exit()
 
 def load_command_line_arguments():
+    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
     parser = argparse.ArgumentParser()
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
     parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
     parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
     #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
     #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
 
     args = parser.parse_args()
     
     export_options = {"csv" : export_to_csv}
     file_options = {"input" : input_file_path, "output" : output_file_path}
 
+    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
     for arg, value in vars(args).items():
         if value is not None and arg=='export':
             delimiter = args.delimiter if args.delimiter is not None else ','
@@ -155,6 +169,7 @@ def load_command_line_arguments():
             file_options[arg](value)
 
 def main():
+    # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
     load_command_line_arguments()
     create_js_files()
     function_html_contacts_file(DB_PATH, CONTACTS_TEMPLATE_FILE_PATH)
