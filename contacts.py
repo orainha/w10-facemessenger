@@ -45,8 +45,6 @@ def function_html_contacts_file(database_path, template_path):
     new_file = open(NEW_FILE_PATH + "contacts.html", 'w', encoding='utf-8')
     template_file.close()
     
-    # variable initialization
-    contact_counter = 1
     for row in c:
         # querry fields
         contact_id = str(row[0])
@@ -63,7 +61,8 @@ def function_html_contacts_file(database_path, template_path):
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             td_id = html_doc_new_file.new_tag('td')
-            td_id.append(str(contact_counter))
+            #td_id.append(str(contact_counter))
+            td_id.append(contact_id)
             td_photo = html_doc_new_file.new_tag('td')
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = str(contact_large_pic)
@@ -83,7 +82,6 @@ def function_html_contacts_file(database_path, template_path):
             tr_tag.append(td_email)
             tr_tag.append(td_phone)
             html_doc_new_file.table.append(tr_tag)
-            contact_counter = contact_counter + 1
         except IOError as error:
             print(error)
             break
