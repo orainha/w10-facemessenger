@@ -66,7 +66,7 @@ def append(data, html):
     # TODO (ricardoapl) 'Fix' list comprehensions!
     data_http = [datum for datum in data if 'http_headers_dict' in datum]
     # XXX (ricardoapl) Consider 'image/gif' as well
-    data_images = [datum for datum in data_http if datum['http_headers_dict']['content-type'] == 'image/jpeg']
+    data_images = [datum for datum in data_http if datum['http_headers_dict']['content-type'].startswith('image/')]
     results = [{'profile': req['profile'], 'location': req['location'], 'datetime': req['datetime'], 'url': req['url']} for req in data_images]
     # XXX (ricardoapl) Where the append (actually) happens!
     tbody = html.tbody
