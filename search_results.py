@@ -8,7 +8,6 @@ import argparse
 REPORT_FILENAME = 'report_user_search.html'
 TEMPLATE_FILENAME = r'templates\template_search_results.html'
 NEW_FILE_PATH = ''
-DB_PATH = ''
 PATH = ''
 
 def extract(dirpath, filepath):
@@ -96,27 +95,9 @@ def export_to_csv(delimiter):
 
 def input_file_path(path):
     #TODO: procurar por utilizadores dando apenas o drive?
-    global DB_PATH
     global PATH
     #get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
-    #get db file name
-    try:
-        if os.path.exists(PATH):
-            auth_id = 0
-            f_data = open(PATH + 'data', 'r')
-            data = json.load(f_data)
-            for item in data:
-                txt = item.split(":")
-                auth_id = txt[1]
-                break
-            db_file_name = "msys_" + auth_id + ".db"
-            DB_PATH = PATH + db_file_name
-        else:
-            raise IOError("Error: File not found on given path")
-    except IOError as error:
-        print(error)
-        exit()
 
 def output_file_path(path):
     global NEW_FILE_PATH 
