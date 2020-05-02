@@ -5,10 +5,11 @@ import json
 import bs4
 import argparse
 
-REPORT_FILENAME = 'report_user_search.html'
-TEMPLATE_FILENAME = r'templates\template_search_results.html'
 NEW_FILE_PATH = ''
 PATH = ''
+
+REPORT_FILENAME = 'report_user_search.html'
+TEMPLATE_FILENAME = r'templates\template_search_results.html'
 
 def extract(dirpath, filepath):
     """Extract data from dirpath into filepath by running hindsight.exe."""
@@ -42,6 +43,9 @@ def clean():
 
 def report():
     # TODO (ricardoapl) Write docstring
+    global REPORT_FILENAME
+    global NEW_FILE_PATH
+    REPORT_FILENAME = NEW_FILE_PATH + REPORT_FILENAME
     with open(TEMPLATE_FILENAME, 'r') as template:
         content = template.read()
     html = bs4.BeautifulSoup(content, features='html.parser')
