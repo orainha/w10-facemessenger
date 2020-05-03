@@ -51,9 +51,11 @@ def create_js_files():
     # XXX Duplicate from contacts.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
-            os.makedirs(NEW_FILE_PATH + "\js")
-        shutil.copy2('templates\js\csv.js', NEW_FILE_PATH + "\js")
-    except IOError as error:
+             os.makedirs(NEW_FILE_PATH + "\js")
+        js_files = os.listdir('templates\js\\')
+        for filename in js_files:
+            shutil.copy2('templates\js\\' + filename, NEW_FILE_PATH + "\js")
+    except OSError as error:
         print(error)
 
 def function_html_messages_file(template_path):

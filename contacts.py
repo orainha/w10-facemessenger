@@ -9,6 +9,7 @@ import webbrowser
 from pathlib import Path
 from headers import fill_header
 from bs4 import BeautifulSoup
+from downloads import download_contact_images
 
 #NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
 #PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
@@ -23,13 +24,25 @@ CONTACTS_QUERRY = """
     ORDER BY name
     """
 
+def create_miscellaneous_files():
+    try:
+        if not os.path.exists(NEW_FILE_PATH + "\misc"):
+             os.makedirs(NEW_FILE_PATH + "\misc")
+        js_files = os.listdir('templates\misc\\')
+        for filename in js_files:
+            shutil.copy2('templates\misc\\' + filename, NEW_FILE_PATH + "\misc")
+    except OSError as error:
+        print(error)
+
 def create_js_files():
     # XXX Duplicate from messages.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
-            os.makedirs(NEW_FILE_PATH + "\js")
-        shutil.copy2('templates\js\csv.js', NEW_FILE_PATH + "\js")
-    except IOError as error:
+             os.makedirs(NEW_FILE_PATH + "\js")
+        js_files = os.listdir('templates\js\\')
+        for filename in js_files:
+            shutil.copy2('templates\js\\' + filename, NEW_FILE_PATH + "\js")
+    except OSError as error:
         print(error)
 
 def function_html_contacts_file(database_path, template_path):
@@ -61,14 +74,17 @@ def function_html_contacts_file(database_path, template_path):
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             td_id = html_doc_new_file.new_tag('td')
-            #td_id.append(str(contact_counter))
             td_id.append(contact_id)
             td_photo = html_doc_new_file.new_tag('td')
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = str(contact_large_pic)
-            img_tag = html_doc_new_file.new_tag('img')
-            img_tag['src'] = str(contact_pic)
-            href_tag.append(img_tag)
+            p_img_tag = html_doc_new_file.new_tag('p')
+            p_img_tag['class'] = 'img_url'
+            p_img_tag.append(str(contact_pic))
+            href_tag.append(p_img_tag)
+            #img_tag = html_doc_new_file.new_tag('img')
+            #img_tag['src'] = str(contact_pic)
+            #href_tag.append(img_tag)
             td_photo.append(href_tag)
             td_name = html_doc_new_file.new_tag('td')
             td_name.append(str(contact_name))
@@ -180,7 +196,9 @@ def main():
     # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
     load_command_line_arguments()
     create_js_files()
+    create_miscellaneous_files()
     function_html_contacts_file(DB_PATH, CONTACTS_TEMPLATE_FILE_PATH)
+    download_contact_images(NEW_FILE_PATH)
     fill_header(DB_PATH, NEW_FILE_PATH + 'contacts.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'contacts.html')
 
