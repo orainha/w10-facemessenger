@@ -5,85 +5,112 @@ import json
 import bs4
 import argparse
 
+
+TEMPLATE_FILENAME = r'templates\template_search_results.html'
+REPORT_FILENAME = 'report_user_search.html'
 NEW_FILE_PATH = ''
 PATH = ''
 
-REPORT_FILENAME = 'report_user_search.html'
-TEMPLATE_FILENAME = r'templates\template_search_results.html'
 
-def extract(dirpath, filepath):
-    """Extract data from dirpath into filepath by running hindsight.exe."""
+# XXX (ricardoapl) Fix docstring according to PEP8
+def extract_one(src, dst):
+    """
+    Extract data from src directory into dst file by running hindsight.exe.
+    """
     fileformat = 'jsonl'
     args = [
         'hindsight.exe',
-        '-i', dirpath,
-        '-o', filepath,
+        '-i', src,
+        '-o', dst,
         '-f', fileformat,
     ]
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
-def traverse(dirpath):
-    # XXX (ricardoapl) Maybe extract() doesn't need to be a separate method - update clean() docstring if so
+
+# XXX (ricardoapl) Add destination path/file argument
+# XXX (ricardoapl) Fix docstring according to PEP8
+def extract_all(path):
+    """
+    Carve Chromium artifacts contained in subdirectories of path.
+    """
     prefix = 'tmp'
     suffix = 1
-    with os.scandir(dirpath) as entries:
+    with os.scandir(path) as entries:
         for entry in entries:
             if entry.is_dir():
                 filename = f'{prefix}-{suffix}'
-                extract(entry, filename)
+                extract_one(entry, filename)
                 suffix += 1
 
-def clean():
-    """Delete files produced by calling extract()."""
-    with os.scandir() as entries:
+
+def clean(path):
+    """
+    Delete files produced by extract_one() and/or extract_all().
+    """
+    with os.scandir(path) as entries:
         for entry in entries:
-            # XXX (ricardoapl) Add and startswith('tmp') for certainty
-            if entry.is_file() and entry.name.endswith('.jsonl'):
+            if entry.is_file() and entry.name.startswith('tmp') and entry.name.endswith('.jsonl'):
                 os.remove(entry.name)
 
-def report():
-    # TODO (ricardoapl) Write docstring
-    global REPORT_FILENAME
-    global NEW_FILE_PATH
-    REPORT_FILENAME = NEW_FILE_PATH + REPORT_FILENAME
-    with open(TEMPLATE_FILENAME, 'r') as template:
+
+# XXX (ricardoapl) If docstring, specify assumptions, e.g., 'extract_all() has been run'
+def report_html(template_path, report_path):
+    with open(template_path, 'r') as template:
         content = template.read()
     html = bs4.BeautifulSoup(content, features='html.parser')
+    # XXX (ricardoapl) If we add destination path/file argument to extract_all,
+    #     we must change argument of os.scandir()
     with os.scandir() as entries:
         for entry in entries:
-            if entry.is_file() and entry.name.endswith('.jsonl'):
+            if entry.is_file() and entry.name.startswith('tmp') and entry.name.endswith('.jsonl'):
                 content = read_jsonl(entry.name)
-                append(content, html)
-    with open(REPORT_FILENAME, 'w') as report:
+                image_content = filter_image_content(content)
+                append_html(image_content, html)
+    with open(report_path, 'w') as report:
         output = html.prettify()
         report.write(output)
 
-def read_jsonl(filepath):
-    # XXX (ricardoapl) Maybe its not worth having a separate method
-    with open(filepath, 'r') as jsonlfile:
+
+def read_jsonl(filename):
+    with open(filename, 'r') as jsonlfile:
         content = jsonlfile.read()
     jsonl = [json.loads(line) for line in content.splitlines()]
     return jsonl
 
-def append(data, html):
-    # TODO (ricardoapl) Write docstring
-    # TODO (ricardoapl) 'Fix' list comprehensions!
-    data_http = [datum for datum in data if 'http_headers_dict' in datum]
-    # XXX (ricardoapl) Consider 'image/gif' as well
-    data_images = [datum for datum in data_http if datum['http_headers_dict']['content-type'].startswith('image/')]
-    results = [{'profile': req['profile'], 'location': req['location'], 'datetime': req['datetime'], 'url': req['url']} for req in data_images]
-    # XXX (ricardoapl) Where the append (actually) happens!
+
+def filter_image_content(data):
+    http_data = [
+        datum for datum in data
+        if 'http_headers_dict' in datum
+    ]
+    image_data = [
+        datum for datum in http_data
+        if datum['http_headers_dict']['content-type'].startswith('image/')
+    ]
+    filtered_data = [
+        {
+            'profile': datum['profile'],
+            'location': datum['location'],
+            'datetime': datum['datetime'],
+            'url': datum['url']
+        }
+        for datum in image_data
+    ]
+    return filtered_data
+
+
+def append_html(data, html):
     tbody = html.tbody
-    for result in results:
+    for datum in data:
         profile_tag = html.new_tag('td')
-        profile_tag.string = result['profile']
+        profile_tag.string = datum['profile']
         location_tag = html.new_tag('td')
-        location_tag.string = result['location']
+        location_tag.string = datum['location']
         datetime_tag = html.new_tag('td')
-        datetime_tag.string = result['datetime']
+        datetime_tag.string = datum['datetime']
         link_tag = html.new_tag('a')
-        link_tag['href'] = result['url']
-        link_tag.string = result['url']
+        link_tag['href'] = datum['url']
+        link_tag.string = datum['url']
         url_tag = html.new_tag('td')
         url_tag.append(link_tag)
         row_tag = html.new_tag('tr')
@@ -93,15 +120,18 @@ def append(data, html):
         row_tag.append(url_tag)
         tbody.append(row_tag)
 
-def export_to_csv(delimiter):
-    #TODO: Insert csv export code   
-    print ("Exported to CSV with delimiter: " + delimiter)
+
+def report_csv(delim):
+    # XXX WIP
+    return
+
 
 def input_file_path(path):
-    #TODO: procurar por utilizadores dando apenas o drive?
+    # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
-    #get full path
+    # Get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+
 
 def output_file_path(path):
     global NEW_FILE_PATH 
@@ -116,21 +146,21 @@ def output_file_path(path):
         print(error)
         exit()  
 
+
 def load_command_line_arguments():
+    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
     parser = argparse.ArgumentParser()
+    group1 = parser.add_argument_group('mandatory arguments')
+    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
     parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
     parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
     #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
     #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-
     args = parser.parse_args()
-    
-    export_options = {"csv" : export_to_csv}
+    export_options = {"csv" : report_csv}
     file_options = {"input" : input_file_path, "output" : output_file_path}
-
+    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
     for arg, value in vars(args).items():
         if value is not None and arg=='export':
             delimiter = args.delimiter if args.delimiter is not None else ','
@@ -138,14 +168,20 @@ def load_command_line_arguments():
         elif value is not None and arg!='delimiter':
             file_options[arg](value)
 
+
 def main():
+    # TODO (ricardoapl) HTML report is only created if the user requests it
     load_command_line_arguments()
     #dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
     dirpath = PATH + 'Partitions'
     dirpath = os.path.expandvars(dirpath)
-    traverse(dirpath)
-    report()
-    clean()
+    extract_all(dirpath)
+    # TODO (ricardoapl) We ought to get rid of these global variables...
+    global REPORT_FILENAME
+    REPORT_FILENAME = NEW_FILE_PATH + REPORT_FILENAME
+    report_html(TEMPLATE_FILENAME, REPORT_FILENAME)
+    clean(".")
+
 
 if __name__ == '__main__':
     main()
