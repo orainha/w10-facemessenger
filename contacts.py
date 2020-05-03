@@ -90,23 +90,23 @@ def function_html_contacts_file(database_path, template_path):
     new_file.truncate()
     new_file.close()   
 
-def export_to_csv(delim):
-    # TODO (ricardoapl) Extract behavior according to method responsibility (database access, query, etc.)
-    # XXX (ricardoapl) Careful! Columns is highly dependant on the query, if we change query we also have to change columns.
-    columns = [
-        'Id',
-        'Photo',
-        'Name',
-        'Phone',
-        'Email',
-        'Photo(Enlarged)'
-    ]
+def export_csv(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
-    connection = sqlite3.connect(DB_PATH)
-    cursor = connection.cursor()
-    cursor.execute(CONTACTS_QUERRY)
-    rows = cursor.fetchall()
-    connection.close()
+    with sqlite3.connect(DB_PATH) as connection:
+        cursor = connection.cursor()
+        cursor.execute(CONTACTS_QUERRY)
+        rows = cursor.fetchall()
+        cursor.close()
+    # XXX (ricardoapl) Careful! Columns is highly dependant on the query,
+    #     if we change query we also have to change columns.
+    columns = [
+        'id',
+        'profile_picture_url',
+        'name',
+        'phone_number',
+        'email_address',
+        'profile_picture_large_url'
+    ]
     # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
     filename = NEW_FILE_PATH + 'contacts.csv'
     with open(filename, 'w', newline='') as csvfile:
@@ -165,7 +165,7 @@ def load_command_line_arguments():
 
     args = parser.parse_args()
     
-    export_options = {"csv" : export_to_csv}
+    export_options = {"csv" : export_csv}
     file_options = {"input" : input_file_path, "output" : output_file_path}
 
     # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
