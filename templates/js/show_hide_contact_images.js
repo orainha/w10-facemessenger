@@ -11,7 +11,6 @@
         let image_urls_len = image_urls.length;
         let imgs = document.querySelectorAll('img');
         let href_image_urls = document.getElementsByTagName('a');
-        //let href_image_urls_len = href_image_urls.length;
         
         if (first_load)
         {

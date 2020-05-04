@@ -83,9 +83,6 @@ def download_small_contact_images(contacts_filename, path):
          counter = counter + 1
    except IOError as error:
       print (error)
-      # if str(error).find("Failed to establish a new connection") > 0:
-      #    print("Warning: Internet connection is required for images display")
-      # else:
 
 def download_large_contact_images(contacts_filename, path):
    CONTACTS_FILENAME = contacts_filename
@@ -109,8 +106,7 @@ def download_large_contact_images(contacts_filename, path):
       #print("Please wait. This might take a while...")
       counter = 0
       for url in large_img_urls:
-
-         #strip url to discart <p> tags and spaces
+         #select href class
          url = url['href']
          #make request
          req = requests.get(url)
