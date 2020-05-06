@@ -13,6 +13,12 @@ NEW_FILE_PATH = ''
 PATH = ''
 
 
+class ImagesCollector():
+
+    def __init__(self):
+        pass
+
+
 # XXX (ricardoapl) Improve docstring according to PEP8
 def extract_one(src, dst):
     """

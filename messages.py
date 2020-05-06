@@ -63,6 +63,12 @@ THREADS_QUERY = """
 """
 
 
+class MessagesCollector():
+
+    def __init__(self):
+        pass
+
+
 def create_js_files():
     # XXX (ricardoapl) Duplicate from contacts.py
     try:

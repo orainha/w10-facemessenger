@@ -31,6 +31,12 @@ CONTACTS_QUERRY = """
 """
 
 
+class ContactsCollector():
+
+    def __init__(self):
+        pass
+
+
 def create_miscellaneous_files():
     try:
         if not os.path.exists(NEW_FILE_PATH + "\misc"):
