@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+import csv
 import json
 import bs4
 import argparse
@@ -53,7 +54,7 @@ def clean(path):
                 os.remove(entry.name)
 
 
-# XXX (ricardoapl) If docstring, specify assumptions, e.g., 'extract_all() has been run'
+# XXX (ricardoapl) Specify assumptions like 'extract_all() has been run'
 def report_html(template_path, report_path):
     with open(template_path, 'r') as template:
         content = template.read()
@@ -69,6 +70,61 @@ def report_html(template_path, report_path):
     with open(report_path, 'w') as report:
         output = html.prettify()
         report.write(output)
+
+
+def append_html(data, html):
+    tbody = html.tbody
+    for datum in data:
+        profile_tag = html.new_tag('td')
+        profile_tag.string = datum['profile']
+        location_tag = html.new_tag('td')
+        location_tag.string = datum['location']
+        datetime_tag = html.new_tag('td')
+        datetime_tag.string = datum['datetime']
+        link_tag = html.new_tag('a')
+        link_tag['href'] = datum['url']
+        link_tag.string = datum['url']
+        url_tag = html.new_tag('td')
+        url_tag.append(link_tag)
+        row_tag = html.new_tag('tr')
+        row_tag.append(profile_tag)
+        row_tag.append(location_tag)
+        row_tag.append(datetime_tag)
+        row_tag.append(url_tag)
+        tbody.append(row_tag)
+
+
+# XXX (ricardoapl) Specify assumptions like 'extract_all() has been run'
+def report_csv(delim):
+    # XXX (ricardoapl) If we add destination path/file argument to extract_all,
+    #     we must change argument of os.scandir()
+    rows = []
+    with os.scandir() as entries:
+        for entry in entries:
+            if entry.is_file() and entry.name.startswith('tmp') and entry.name.endswith('.jsonl'):
+                content = read_jsonl(entry.name)
+                image_content = filter_image_content(content)
+                append_rows(image_content, rows)
+    # XXX (ricardoapl) Rename columns according to HTML report
+    columns = [
+        'profile',
+        'location',
+        'datetime',
+        'url'
+    ]
+    # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
+    filename = NEW_FILE_PATH + 'user_search.csv'
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
+                            quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(columns)
+        writer.writerows(rows)
+
+
+# XXX (ricardoapl) Specify assumptions like 'new_rows and old_rows are lists whose elements are in JSON format'
+def append_rows(new_rows, old_rows):
+    for row in new_rows:
+        old_rows.append(row.values())
 
 
 def read_jsonl(filename):
@@ -97,33 +153,6 @@ def filter_image_content(data):
         for datum in image_data
     ]
     return filtered_data
-
-
-def append_html(data, html):
-    tbody = html.tbody
-    for datum in data:
-        profile_tag = html.new_tag('td')
-        profile_tag.string = datum['profile']
-        location_tag = html.new_tag('td')
-        location_tag.string = datum['location']
-        datetime_tag = html.new_tag('td')
-        datetime_tag.string = datum['datetime']
-        link_tag = html.new_tag('a')
-        link_tag['href'] = datum['url']
-        link_tag.string = datum['url']
-        url_tag = html.new_tag('td')
-        url_tag.append(link_tag)
-        row_tag = html.new_tag('tr')
-        row_tag.append(profile_tag)
-        row_tag.append(location_tag)
-        row_tag.append(datetime_tag)
-        row_tag.append(url_tag)
-        tbody.append(row_tag)
-
-
-def report_csv(delim):
-    # XXX WIP
-    return
 
 
 def input_file_path(path):
