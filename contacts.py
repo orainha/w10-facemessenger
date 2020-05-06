@@ -37,14 +37,15 @@ class ContactsCollector():
         pass
 
 
+# XXX (ricardoapl) These are images, not misc! Rename...
 def create_miscellaneous_files():
     try:
-        if not os.path.exists(NEW_FILE_PATH + "\misc"):
-            os.makedirs(NEW_FILE_PATH + "\misc")
-        js_files = os.listdir('templates\misc\\')
+        if not os.path.exists(NEW_FILE_PATH + "\images"):
+            os.makedirs(NEW_FILE_PATH + "\images")
+        js_files = os.listdir('templates\images\\')
         for filename in js_files:
-            shutil.copy2('templates\misc\\' + filename,
-                         NEW_FILE_PATH + "\misc")
+            shutil.copy2('templates\images\\' + filename,
+                         NEW_FILE_PATH + "\images")
     except OSError as error:
         print(error)
 
