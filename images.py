@@ -7,8 +7,8 @@ import bs4
 import argparse
 
 
-TEMPLATE_FILENAME = r'templates\template_search_results.html'
-REPORT_FILENAME = 'report_user_search.html'
+TEMPLATE_FILENAME = r'templates\template_images.html'
+REPORT_FILENAME = 'report_images.html'
 NEW_FILE_PATH = ''
 PATH = ''
 
