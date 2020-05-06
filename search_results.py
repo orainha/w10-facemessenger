@@ -13,7 +13,7 @@ NEW_FILE_PATH = ''
 PATH = ''
 
 
-# XXX (ricardoapl) Fix docstring according to PEP8
+# XXX (ricardoapl) Improve docstring according to PEP8
 def extract_one(src, dst):
     """
     Extract data from src directory into dst file by running hindsight.exe.
@@ -28,8 +28,8 @@ def extract_one(src, dst):
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
 
-# XXX (ricardoapl) Add destination path/file argument
-# XXX (ricardoapl) Fix docstring according to PEP8
+# XXX (ricardoapl) Add destination path/file argument?
+# XXX (ricardoapl) Improve docstring according to PEP8
 def extract_all(path):
     """
     Carve Chromium artifacts contained in subdirectories of path.
@@ -163,45 +163,49 @@ def input_file_path(path):
 
 
 def output_file_path(path):
-    global NEW_FILE_PATH 
+    global NEW_FILE_PATH
     path = os.path.expandvars(path)
     NEW_FILE_PATH = path + "\\report\\"
     try:
         if not os.path.exists(path):
-            raise IOError ("Error: Given destination output path not found")
+            raise IOError("Error: Given destination output path not found")
         if not os.path.exists(NEW_FILE_PATH):
             os.makedirs(NEW_FILE_PATH)
     except IOError as error:
         print(error)
-        exit()  
+        exit()
 
 
 def load_command_line_arguments():
     # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
     parser = argparse.ArgumentParser()
     group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-    parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
-    parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
-    #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
+    group1.add_argument(
+        '-i', '--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument(
+        '-o', '--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
+    parser.add_argument(
+        '-e', '--export', choices=['csv'], help='Export to %(choices)s')
+    parser.add_argument('-d', '--delimiter',
+                        choices=[',', '»', '«'], help='Delimiter to csv')
+    # parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
+    # parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
     args = parser.parse_args()
-    export_options = {"csv" : report_csv}
-    file_options = {"input" : input_file_path, "output" : output_file_path}
+    export_options = {"csv": report_csv}
+    file_options = {"input": input_file_path, "output": output_file_path}
     # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
     for arg, value in vars(args).items():
-        if value is not None and arg=='export':
+        if value is not None and arg == 'export':
             delimiter = args.delimiter if args.delimiter is not None else ','
             export_options[value](delimiter)
-        elif value is not None and arg!='delimiter':
+        elif value is not None and arg != 'delimiter':
             file_options[arg](value)
 
 
 def main():
     # TODO (ricardoapl) HTML report is only created if the user requests it
     load_command_line_arguments()
-    #dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
+    # dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
     dirpath = PATH + 'Partitions'
     dirpath = os.path.expandvars(dirpath)
     extract_all(dirpath)

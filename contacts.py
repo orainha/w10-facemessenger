@@ -11,62 +11,66 @@ from headers import fill_header
 from bs4 import BeautifulSoup
 from downloads import download_contact_images
 
-#NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
-#PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
+
+# NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
+# PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
 CONTACTS_TEMPLATE_FILE_PATH = r'templates\template_contacts.html'
 NEW_FILE_PATH = ''
 PATH = ''
 DB_PATH = ''
-
 CONTACTS_QUERRY = """
     SELECT id, profile_picture_url, name, phone_number, email_address, profile_picture_large_url
     FROM contacts
     ORDER BY name
     """
 
+
 def create_miscellaneous_files():
     try:
         if not os.path.exists(NEW_FILE_PATH + "\misc"):
-             os.makedirs(NEW_FILE_PATH + "\misc")
+            os.makedirs(NEW_FILE_PATH + "\misc")
         js_files = os.listdir('templates\misc\\')
         for filename in js_files:
-            shutil.copy2('templates\misc\\' + filename, NEW_FILE_PATH + "\misc")
+            shutil.copy2('templates\misc\\' + filename,
+                         NEW_FILE_PATH + "\misc")
     except OSError as error:
         print(error)
 
+
 def create_js_files():
-    # XXX Duplicate from messages.py
+    # XXX (ricardoapl) Duplicate from messages.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
-             os.makedirs(NEW_FILE_PATH + "\js")
+            os.makedirs(NEW_FILE_PATH + "\js")
         js_files = os.listdir('templates\js\\')
         for filename in js_files:
             shutil.copy2('templates\js\\' + filename, NEW_FILE_PATH + "\js")
     except OSError as error:
         print(error)
 
+
 def function_html_contacts_file(database_path, template_path):
     global NEW_FILE_PATH
-    # connect to database
+    # Connect to database
     conn = sqlite3.connect(database_path)
     c = conn.cursor()
     c.execute(CONTACTS_QUERRY)
 
-    #get template and create new file
+    # Get template and create new file
     template_file = open(template_path, 'r', encoding='utf-8')
     html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
     new_file = open(NEW_FILE_PATH + "contacts.html", 'w', encoding='utf-8')
     template_file.close()
-    
+
     for row in c:
-        # querry fields
+        # Query fields
         contact_id = str(row[0])
         contact_pic = str(row[1])
         contact_name = str(row[2])
         contact_phone = str(row[3])
         contact_email = str(row[4])
         contact_large_pic = str(row[5])
-        # set default values to 'None'
+        # Set default values to 'None'
         if contact_phone == 'None':
             contact_phone = "No Phone"
         if contact_email == 'None':
@@ -78,17 +82,17 @@ def function_html_contacts_file(database_path, template_path):
             td_photo = html_doc_new_file.new_tag('td')
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = str(contact_large_pic)
-            #1) start html with links (download all images)
+            # 1) start html with links (download all images)
             # p_img_tag = html_doc_new_file.new_tag('p')
             # p_img_tag['class'] = 'img_url'
             # p_img_tag.append(str(contact_pic))
             # href_tag.append(p_img_tag)
-            #end 1)
-            #2) start html with images (download image one by one)
+            # end 1)
+            # 2) start html with images (download image one by one)
             img_tag = html_doc_new_file.new_tag('img')
             img_tag['src'] = str(contact_pic)
             href_tag.append(img_tag)
-            #end 2)
+            # end 2)
             td_photo.append(href_tag)
             td_name = html_doc_new_file.new_tag('td')
             td_name.append(str(contact_name))
@@ -96,7 +100,7 @@ def function_html_contacts_file(database_path, template_path):
             td_email.append(str(contact_email))
             td_phone = html_doc_new_file.new_tag('td')
             td_phone.append(str(contact_phone))
-            #2) start html with images (download images one by one)
+            # 2) start html with images (download images one by one)
             td_btn = html_doc_new_file.new_tag('td')
             button_tag = html_doc_new_file.new_tag('button')
             button_tag['id'] = contact_id
@@ -104,15 +108,15 @@ def function_html_contacts_file(database_path, template_path):
             button_tag['value'] = str(contact_large_pic)
             button_tag.append('Download Image')
             td_btn.append(button_tag)
-            #end 2)
+            # end 2)
             tr_tag.append(td_id)
             tr_tag.append(td_photo)
             tr_tag.append(td_name)
             tr_tag.append(td_email)
             tr_tag.append(td_phone)
-            #2) start html with images (download images one by one)
+            # 2) start html with images (download images one by one)
             tr_tag.append(td_btn)
-            #end 2)
+            # end 2)
             html_doc_new_file.table.append(tr_tag)
         except IOError as error:
             print(error)
@@ -120,7 +124,8 @@ def function_html_contacts_file(database_path, template_path):
     new_file.seek(0)
     new_file.write(html_doc_new_file.prettify())
     new_file.truncate()
-    new_file.close()   
+    new_file.close()
+
 
 def export_csv(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
@@ -147,12 +152,12 @@ def export_csv(delim):
         writer.writerow(columns)
         writer.writerows(rows)
 
+
 def input_file_path(path):
-    #TODO: procurar por utilizadores dando apenas o drive?
+    # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global DB_PATH
-    #get full path
+    # Get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
-    # XXX (ricardoapl) Get id present in db file name
     # TODO (ricardoapl) Extract into common method
     try:
         if os.path.exists(PATH):
@@ -171,42 +176,46 @@ def input_file_path(path):
         print(error)
         exit()
 
+
 def output_file_path(path):
-    global NEW_FILE_PATH 
+    global NEW_FILE_PATH
     path = os.path.expandvars(path)
     NEW_FILE_PATH = path + "\\report\\"
     try:
         if not os.path.exists(path):
-            raise IOError ("Error: Given destination output path not found")
+            raise IOError("Error: Given destination output path not found")
         if not os.path.exists(NEW_FILE_PATH):
             os.makedirs(NEW_FILE_PATH)
     except IOError as error:
         print(error)
         exit()
 
+
 def load_command_line_arguments():
     # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
     parser = argparse.ArgumentParser()
     group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument('-i','--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument('-o','--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-    parser.add_argument('-e','--export', choices=['csv'], help='Export to %(choices)s')
-    parser.add_argument('-d','--delimiter', choices=[',','»','«'], help='Delimiter to csv')
-    #parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    #parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-
+    group1.add_argument(
+        '-i', '--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
+    parser.add_argument(
+        '-o', '--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
+    parser.add_argument(
+        '-e', '--export', choices=['csv'], help='Export to %(choices)s')
+    parser.add_argument('-d', '--delimiter',
+                        choices=[',', '»', '«'], help='Delimiter to csv')
+    # parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
+    # parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
     args = parser.parse_args()
-    
-    export_options = {"csv" : export_csv}
-    file_options = {"input" : input_file_path, "output" : output_file_path}
-
+    export_options = {"csv": export_csv}
+    file_options = {"input": input_file_path, "output": output_file_path}
     # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
     for arg, value in vars(args).items():
-        if value is not None and arg=='export':
+        if value is not None and arg == 'export':
             delimiter = args.delimiter if args.delimiter is not None else ','
             export_options[value](delimiter)
-        elif value is not None and arg!='delimiter':
+        elif value is not None and arg != 'delimiter':
             file_options[arg](value)
+
 
 def main():
     # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
@@ -214,11 +223,12 @@ def main():
     create_js_files()
     create_miscellaneous_files()
     function_html_contacts_file(DB_PATH, CONTACTS_TEMPLATE_FILE_PATH)
-    #1) start html with links (download all images)
-    #download_contact_images(NEW_FILE_PATH)
-    #end 1)
+    # 1) start html with links (download all images)
+    # download_contact_images(NEW_FILE_PATH)
+    # end 1)
     fill_header(DB_PATH, NEW_FILE_PATH + 'contacts.html')
     webbrowser.open_new_tab(NEW_FILE_PATH + 'contacts.html')
+
 
 if __name__ == '__main__':
     main()

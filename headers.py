@@ -2,7 +2,9 @@ import datetime
 import hashlib
 import bs4
 
+
 # XXX We may want to suppress soupsieve warning later on
+
 
 def fill_header(src_filename, dst_filename):
     """Populate HTML <header></header> of file specified by dst_filename."""
@@ -27,6 +29,7 @@ def fill_header(src_filename, dst_filename):
         file.write(html.prettify())
         file.truncate()
 
+
 def sha256sum(filename):
     """Return the SHA256 string representation of file specified by filename."""
     CHUNK_SIZE = 65536
@@ -39,11 +42,13 @@ def sha256sum(filename):
             sha256.update(chunk)
     return sha256.hexdigest()
 
+
 def main():
     # XXX Usage example
     src = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\msys_100047488492327.db'
     dst = r'%USERPROFILE%\Desktop\stub.html'
     fill_header(src, dst)
+
 
 if __name__ == '__main__':
     main()
