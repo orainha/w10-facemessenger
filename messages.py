@@ -23,24 +23,40 @@ PATH = ''
 DB_PATH = ''
 auth_id = 0
 CONVERSATIONS_QUERRY = """
-                        SELECT c.profile_picture_url, c.name, c.profile_picture_large_url, 
-                                p.thread_key, p.contact_id, p.nickname
-                        FROM participants as p 
-                            JOIN contacts as c on c.id = p.contact_id
-                    """
+    SELECT
+        c.profile_picture_url,
+        c.name,
+        c.profile_picture_large_url, 
+        p.thread_key,
+        p.contact_id,
+        p.nickname
+    FROM participants as p 
+    JOIN contacts as c ON c.id = p.contact_id
+"""
 MESSAGES_PER_CONVERSATION_QUERRY = """
-                        SELECT m.thread_key, datetime((m.timestamp_ms)/1000,'unixepoch'), 
-                                u.contact_id, m.sender_id, u.name, m.text, 
-                                a.preview_url, a.playable_url, a.title_text,
-                                a.subtitle_text, a.default_cta_type, a.playable_url_mime_type,
-                                a.filename, r.reaction, (SELECT name FROM contacts WHERE id = r.actor_id),
-                                a.playable_duration_ms/1000
-                        FROM messages as m 
-                            LEFT JOIN attachments AS a ON m.message_id = a.message_id
-                            JOIN user_contact_info as u ON m.sender_id = u.contact_id
-                            LEFT JOIN reactions AS r ON m.message_id = r.message_id
-                        ORDER BY m.timestamp_ms
-                    """
+    SELECT
+        m.thread_key,
+        datetime((m.timestamp_ms)/1000,'unixepoch'), 
+        u.contact_id,
+        m.sender_id,
+        u.name,
+        m.text, 
+        a.preview_url,
+        a.playable_url,
+        a.title_text,
+        a.subtitle_text,
+        a.default_cta_type,
+        a.playable_url_mime_type,
+        a.filename,
+        r.reaction,
+        (SELECT name FROM contacts WHERE id = r.actor_id),
+        a.playable_duration_ms/1000
+    FROM messages as m 
+    LEFT JOIN attachments AS a ON m.message_id = a.message_id
+    JOIN user_contact_info as u ON m.sender_id = u.contact_id
+    LEFT JOIN reactions AS r ON m.message_id = r.message_id
+    ORDER BY m.timestamp_ms
+"""
 THREADS_QUERY = """
     SELECT DISTINCT thread_key
     FROM threads
@@ -155,11 +171,13 @@ def function_html_messages_file(template_path):
             #  - uma imagem (preview_url + title_text + subtitle_text)
             #  - uma chamada perdida (title_text + subtitle_text)
             if not message or message == "" or message == 'None':
-                if attachment_type == "xma_rtc_ended_video": # O que é xma_rtc?
+                # XXX (orainha) O que é xma_rtc?
+                if attachment_type == "xma_rtc_ended_video":
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(
-                        "Ended "+attachment_title + " - " + attachment_subtitle)
-                elif attachment_type == "xma_rtc_missed_video": # O que é xma_rtc?
+                        "Ended " + attachment_title + " - " + attachment_subtitle)
+                # XXX (orainha) O que é xma_rtc?
+                elif attachment_type == "xma_rtc_missed_video":
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(attachment_title +
                                       " at " + attachment_subtitle)

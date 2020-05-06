@@ -19,10 +19,16 @@ NEW_FILE_PATH = ''
 PATH = ''
 DB_PATH = ''
 CONTACTS_QUERRY = """
-    SELECT id, profile_picture_url, name, phone_number, email_address, profile_picture_large_url
+    SELECT
+        id,
+        profile_picture_url,
+        name,
+        phone_number,
+        email_address,
+        profile_picture_large_url
     FROM contacts
     ORDER BY name
-    """
+"""
 
 
 def create_miscellaneous_files():
