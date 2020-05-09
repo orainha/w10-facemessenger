@@ -1,13 +1,13 @@
-import datetime
 import hashlib
+import datetime
+
 import bs4
 
 
-# XXX We may want to suppress soupsieve warning later on
-
-
 def fill_header(src_filename, dst_filename):
-    """Populate HTML <header></header> of file specified by dst_filename."""
+    """
+    Populate HTML <header></header> of file specified by dst_filename.
+    """
     filename = src_filename
     hashsum = sha256sum(src_filename)
     timezone = datetime.timezone.utc
@@ -31,7 +31,9 @@ def fill_header(src_filename, dst_filename):
 
 
 def sha256sum(filename):
-    """Return the SHA256 string representation of file specified by filename."""
+    """
+    Return the SHA256 string representation of file specified by filename.
+    """
     CHUNK_SIZE = 65536
     sha256 = hashlib.sha256()
     with open(filename, 'rb') as file:
@@ -41,14 +43,3 @@ def sha256sum(filename):
                 break
             sha256.update(chunk)
     return sha256.hexdigest()
-
-
-def main():
-    # XXX Usage example
-    src = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\msys_100047488492327.db'
-    dst = r'%USERPROFILE%\Desktop\stub.html'
-    fill_header(src, dst)
-
-
-if __name__ == '__main__':
-    main()

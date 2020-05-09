@@ -1,20 +1,20 @@
-import subprocess
-import sys
 import os
+import sys
+import subprocess
 import csv
 import json
+
 import bs4
-import argparse
 
 
-TEMPLATE_FILENAME = r'templates\template_images.html'
+# XXX (ricardoapl) Fix this non-pythonic mess!
+TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_images.html')
 REPORT_FILENAME = 'report_images.html'
 NEW_FILE_PATH = ''
 PATH = ''
 
 
 class ImagesCollector():
-
     def __init__(self):
         pass
 
@@ -24,9 +24,11 @@ def extract_one(src, dst):
     """
     Extract data from src directory into dst file by running hindsight.exe.
     """
+    # XXX (ricardoapl) Fix this non-pythonic mess!
+    hindsight = os.path.join(os.path.dirname(__file__), '..\hindsight.exe')
     fileformat = 'jsonl'
     args = [
-        'hindsight.exe',
+        hindsight,
         '-i', src,
         '-o', dst,
         '-f', fileformat,
@@ -119,7 +121,7 @@ def report_csv(delim):
         'url'
     ]
     # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
-    filename = NEW_FILE_PATH + 'user_search.csv'
+    filename = NEW_FILE_PATH + 'report_images.csv'
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
                             quoting=csv.QUOTE_MINIMAL)
@@ -164,7 +166,6 @@ def filter_image_content(data):
 def input_file_path(path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
-    # Get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
 
 
@@ -180,47 +181,3 @@ def output_file_path(path):
     except IOError as error:
         print(error)
         exit()
-
-
-def load_command_line_arguments():
-    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
-    parser = argparse.ArgumentParser()
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument(
-        '-i', '--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument(
-        '-o', '--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-    parser.add_argument(
-        '-e', '--export', choices=['csv'], help='Export to %(choices)s')
-    parser.add_argument('-d', '--delimiter',
-                        choices=[',', '»', '«'], help='Delimiter to csv')
-    # parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    # parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    args = parser.parse_args()
-    export_options = {"csv": report_csv}
-    file_options = {"input": input_file_path, "output": output_file_path}
-    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
-    for arg, value in vars(args).items():
-        if value is not None and arg == 'export':
-            delimiter = args.delimiter if args.delimiter is not None else ','
-            export_options[value](delimiter)
-        elif value is not None and arg != 'delimiter':
-            file_options[arg](value)
-
-
-def main():
-    # TODO (ricardoapl) HTML report is only created if the user requests it
-    load_command_line_arguments()
-    # dirpath = r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\Partitions'
-    dirpath = PATH + 'Partitions'
-    dirpath = os.path.expandvars(dirpath)
-    extract_all(dirpath)
-    # TODO (ricardoapl) We ought to get rid of these global variables...
-    global REPORT_FILENAME
-    REPORT_FILENAME = NEW_FILE_PATH + REPORT_FILENAME
-    report_html(TEMPLATE_FILENAME, REPORT_FILENAME)
-    clean(".")
-
-
-if __name__ == '__main__':
-    main()

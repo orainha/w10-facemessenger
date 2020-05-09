@@ -4,19 +4,16 @@ import shutil
 import csv
 import json
 import sqlite3
-import argparse
-import webbrowser
 from pathlib import Path
-from headers import fill_header
+
 from bs4 import BeautifulSoup
 
+from core.headers import fill_header
 
-CONVERSATIONS_TEMPLATE_FILENAME = r'templates\template_conversations.html'
-MESSAGES_TEMPLATE_FILENAME = r'templates\template_messages.html'
-# NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
-# PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
-# DB_PATH = PATH + db_file_name
-# MESSAGES_PATH = NEW_FILE_PATH + "msgs\\"
+
+# XXX (ricardoapl) Fix this non-pythonic mess!
+CONVERSATIONS_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_conversations.html')
+MESSAGES_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_messages.html')
 NEW_FILE_PATH = ''
 MESSAGES_PATH = ''
 PATH = ''
@@ -64,24 +61,26 @@ THREADS_QUERY = """
 
 
 class MessagesCollector():
-
     def __init__(self):
         pass
 
 
+# XXX (ricardoapl) Move method to other module (utils?)
+# XXX (ricardoapl) Maybe create a single method for all assets (js, css, images)
+# XXX (ricardoapl) Fix this non-pythonic mess!
 def create_js_files():
-    # XXX (ricardoapl) Duplicate from contacts.py
     try:
         if not os.path.exists(NEW_FILE_PATH + "\js"):
             os.makedirs(NEW_FILE_PATH + "\js")
-        js_files = os.listdir('templates\js\\')
+        js_path = os.path.join(os.path.dirname(__file__), r'..\templates\js\\')
+        js_files = os.listdir(js_path)
         for filename in js_files:
-            shutil.copy2('templates\js\\' + filename, NEW_FILE_PATH + "\js")
+            shutil.copy2(os.path.join(js_path, filename), NEW_FILE_PATH + "\js")
     except OSError as error:
         print(error)
 
 
-def function_html_messages_file(template_path):
+def report_html_messages(template_path):
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -92,6 +91,7 @@ def function_html_messages_file(template_path):
     file_write = ""
     counter = 1
     # Delete msgs file path if exists
+    # XXX (ricardoapl) This method is not responsible for deleting old files
     if os.path.exists(MESSAGES_PATH):
         shutil.rmtree(MESSAGES_PATH)
     for row in cursor:
@@ -271,9 +271,7 @@ def function_html_messages_file(template_path):
             print(error)
 
 
-def function_html_participants_file(template_path):
-    # global NEW_FILE_PATH
-
+def report_html_conversations(template_path):
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -303,6 +301,7 @@ def function_html_participants_file(template_path):
             tr_tag = html_doc_new_file.new_tag('tr')
             td_empty = html_doc_new_file.new_tag('td')
             td_conversation = html_doc_new_file.new_tag('td')
+            # XXX (ricardoapl) Use thread_key instead of counter (that's how we identify the HTML file later on)
             td_conversation.append(f"Conversation: {str(counter)}")
             tr_tag.append(td_empty)
             tr_tag.append(td_conversation)
@@ -359,7 +358,7 @@ def function_html_participants_file(template_path):
     new_file.truncate()
 
 
-def export_csv_conversations(delim):
+def report_csv_conversations(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
     with sqlite3.connect(DB_PATH) as connection:
         cursor = connection.cursor()
@@ -385,7 +384,7 @@ def export_csv_conversations(delim):
         writer.writerows(rows)
 
 
-def export_csv_messages(delim):
+def report_csv_messages(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
     with sqlite3.connect(DB_PATH) as connection:
         cursor = connection.cursor()
@@ -428,17 +427,16 @@ def export_csv_messages(delim):
             writer.writerows(thread_messages)
 
 
-def export_csv(delim):
-    export_csv_conversations(delim)
-    export_csv_messages(delim)
+def report_csv(delim):
+    report_csv_conversations(delim)
+    report_csv_messages(delim)
 
 
 def input_file_path(path):
-    # XXX (orainha) procurar por utilizadores dando apenas o drive?
+    # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global DB_PATH
     global PATH
     global auth_id
-    # Get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
     # TODO (ricardoapl) Extract into common method
     try:
@@ -451,8 +449,6 @@ def input_file_path(path):
                 break
             db_file_name = "msys_" + auth_id + ".db"
             DB_PATH = PATH + db_file_name
-            # print("Application path is " + PATH)
-            # print("Database path is " + DB_PATH)
         else:
             raise IOError("Error: File not found on given path")
     except IOError as error:
@@ -473,52 +469,6 @@ def output_file_path(path):
             os.makedirs(NEW_FILE_PATH)
         if not os.path.exists(MESSAGES_PATH):
             os.makedirs(MESSAGES_PATH)
-        # print("Report will be saved on " + NEW_FILE_PATH)
-        # print("Messages path is " + MESSAGES_PATH)
     except IOError as error:
         print(error)
         exit()
-
-
-def load_command_line_arguments():
-    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
-    parser = argparse.ArgumentParser()
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument(
-        '-i', '--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument(
-        '-o', '--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-    parser.add_argument(
-        '-e', '--export', choices=['csv'], help='Export to %(choices)s')
-    parser.add_argument('-d', '--delimiter',
-                        choices=[',', '»', '«'], help='Delimiter to csv')
-    # parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    # parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-
-    args = parser.parse_args()
-
-    export_options = {"csv": export_csv}
-    file_options = {"input": input_file_path, "output": output_file_path}
-
-    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
-    # for each argument (key=>value)
-    for arg, value in vars(args).items():
-        if value is not None and arg == 'export':
-            delimiter = args.delimiter if args.delimiter is not None else ','
-            export_options[value](delimiter)
-        elif value is not None and arg != 'delimiter':
-            file_options[arg](value)
-
-
-def main():
-    # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
-    load_command_line_arguments()
-    create_js_files()
-    function_html_participants_file(CONVERSATIONS_TEMPLATE_FILENAME)
-    function_html_messages_file(MESSAGES_TEMPLATE_FILENAME)
-    fill_header(DB_PATH, NEW_FILE_PATH + 'conversations.html')
-    webbrowser.open_new_tab(NEW_FILE_PATH + 'conversations.html')
-
-
-if __name__ == '__main__':
-    main()

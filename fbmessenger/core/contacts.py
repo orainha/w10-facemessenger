@@ -4,17 +4,15 @@ import shutil
 import csv
 import json
 import sqlite3
-import argparse
-import webbrowser
-from pathlib import Path
-from headers import fill_header
+
 from bs4 import BeautifulSoup
-from downloads import download_contact_images
+
+from core.headers import fill_header
+# from core.downloads import download_contact_images
 
 
-# NEW_FILE_PATH = os.path.expandvars(r'%TEMP%\\')
-# PATH = os.path.expandvars(r'%LOCALAPPDATA%\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\')
-CONTACTS_TEMPLATE_FILE_PATH = r'templates\template_contacts.html'
+# XXX (ricardoapl) Fix this non-pythonic mess!
+CONTACTS_TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), r'..\templates\template_contacts.html')
 NEW_FILE_PATH = ''
 PATH = ''
 DB_PATH = ''
@@ -32,12 +30,14 @@ CONTACTS_QUERRY = """
 
 
 class ContactsCollector():
-
     def __init__(self):
         pass
 
 
+# XXX (ricardoapl) Move method to other module (utils?)
+# XXX (ricardoapl) Maybe create a single method for all assets (js, css, images)
 # XXX (ricardoapl) These are images, not misc! Rename...
+# XXX (ricardoapl) Fix this non-pythonic mess!
 def create_miscellaneous_files():
     try:
         if not os.path.exists(NEW_FILE_PATH + "\images"):
@@ -50,19 +50,7 @@ def create_miscellaneous_files():
         print(error)
 
 
-def create_js_files():
-    # XXX (ricardoapl) Duplicate from messages.py
-    try:
-        if not os.path.exists(NEW_FILE_PATH + "\js"):
-            os.makedirs(NEW_FILE_PATH + "\js")
-        js_files = os.listdir('templates\js\\')
-        for filename in js_files:
-            shutil.copy2('templates\js\\' + filename, NEW_FILE_PATH + "\js")
-    except OSError as error:
-        print(error)
-
-
-def function_html_contacts_file(database_path, template_path):
+def report_html(database_path, template_path):
     global NEW_FILE_PATH
     # Connect to database
     conn = sqlite3.connect(database_path)
@@ -140,7 +128,7 @@ def function_html_contacts_file(database_path, template_path):
     new_file.close()
 
 
-def export_csv(delim):
+def report_csv(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
     with sqlite3.connect(DB_PATH) as connection:
         cursor = connection.cursor()
@@ -169,7 +157,6 @@ def export_csv(delim):
 def input_file_path(path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global DB_PATH
-    # Get full path
     PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
     # TODO (ricardoapl) Extract into common method
     try:
@@ -202,46 +189,3 @@ def output_file_path(path):
     except IOError as error:
         print(error)
         exit()
-
-
-def load_command_line_arguments():
-    # TODO (ricardoapl) This method should only be responsible for parsing, not execution!
-    parser = argparse.ArgumentParser()
-    group1 = parser.add_argument_group('mandatory arguments')
-    group1.add_argument(
-        '-i', '--input', help=r'Windows user path. Usage: %(prog)s -i C:\Users\User', required=True)
-    parser.add_argument(
-        '-o', '--output', default=r'%USERPROFILE%\Desktop', help='Output destination path')
-    parser.add_argument(
-        '-e', '--export', choices=['csv'], help='Export to %(choices)s')
-    parser.add_argument('-d', '--delimiter',
-                        choices=[',', '»', '«'], help='Delimiter to csv')
-    # parser.add_argument('-src','--source', help='Windows user path. Usage %(prog)s -src C:\Users\User', required=True)
-    # parser.add_argument('-dst','--destination', default=r'%USERPROFILE%\Desktop', help='Save report path')
-    args = parser.parse_args()
-    export_options = {"csv": export_csv}
-    file_options = {"input": input_file_path, "output": output_file_path}
-    # XXX (ricardoapl) Careful! The way this is, execution is dependant on parsing order!
-    for arg, value in vars(args).items():
-        if value is not None and arg == 'export':
-            delimiter = args.delimiter if args.delimiter is not None else ','
-            export_options[value](delimiter)
-        elif value is not None and arg != 'delimiter':
-            file_options[arg](value)
-
-
-def main():
-    # TODO (ricardoapl) HTML report is only created if the user requests it (see cmdline args)
-    load_command_line_arguments()
-    create_js_files()
-    create_miscellaneous_files()
-    function_html_contacts_file(DB_PATH, CONTACTS_TEMPLATE_FILE_PATH)
-    # 1) start html with links (download all images)
-    # download_contact_images(NEW_FILE_PATH)
-    # end 1)
-    fill_header(DB_PATH, NEW_FILE_PATH + 'contacts.html')
-    webbrowser.open_new_tab(NEW_FILE_PATH + 'contacts.html')
-
-
-if __name__ == '__main__':
-    main()

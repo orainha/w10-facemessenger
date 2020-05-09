@@ -1,13 +1,12 @@
-import sys
 import os
-import requests
+import sys
 import shutil
-from pathlib import Path
+import requests
+
 from bs4 import BeautifulSoup
 
 
 # import httplib
-# DB_PATH = str(Path.home()) + "\\AppData\\Local\\Packages\\Facebook.FacebookMessenger_8xx8rvfyw5nnt\\LocalState\\msys_709212107.db"
 PATH = r'%USERPROFILE%\Desktop\\report'
 
 
@@ -77,7 +76,7 @@ def download_small_contact_images(contacts_filename, path):
                     print(error)
             else:
                 # Url not found, get default image to replace
-                not_found_image_filename = PATH + f'misc\\not_found.jpg'
+                not_found_image_filename = PATH + f'images\\notfound.jpg'
                 try:
                     # Copy default "not found" image and name it with contact id as file name
                     shutil.copy2(not_found_image_filename, SMALL_IMAGES_PATH +
@@ -132,7 +131,7 @@ def download_large_contact_images(contacts_filename, path):
                     print(error)
             else:
                 # URL not found, get default image to replace
-                not_found_image_filename = PATH + f'misc\\not_found.jpg'
+                not_found_image_filename = PATH + f'images\\notfound.jpg'
                 try:
                     # Copy default "not found" image and name it with contact id as file name
                     shutil.copy2(not_found_image_filename, LARGE_IMAGES_PATH +
