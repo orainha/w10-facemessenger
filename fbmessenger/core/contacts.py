@@ -8,7 +8,6 @@ import sqlite3
 from bs4 import BeautifulSoup
 
 from core.headers import fill_header
-# from core.downloads import download_contact_images
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
@@ -42,9 +41,10 @@ def create_miscellaneous_files():
     try:
         if not os.path.exists(NEW_FILE_PATH + "\images"):
             os.makedirs(NEW_FILE_PATH + "\images")
-        js_files = os.listdir('templates\images\\')
-        for filename in js_files:
-            shutil.copy2('templates\images\\' + filename,
+        images_dir = os.path.join(os.path.dirname(__file__), r'..\templates\images\\')
+        images = os.listdir(images_dir)
+        for image in images:
+            shutil.copy2(images_dir + image,
                          NEW_FILE_PATH + "\images")
     except OSError as error:
         print(error)

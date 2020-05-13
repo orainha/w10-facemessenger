@@ -4,6 +4,7 @@ import argparse
 import core.contacts
 import core.messages
 import core.images
+import core.downloads
 
 
 # XXX (ricardoapl) Apply PEP8
@@ -16,6 +17,7 @@ def parse_cmdline():
     parser.add_argument('--output', default=r'%USERPROFILE%\Desktop', help='set output directory for report (defaults to Desktop)')
     parser.add_argument('--format', choices=['html', 'csv'], default='html', help='choose report format (defaults to "html")')
     parser.add_argument('--delimiter', choices=[',', '»', '«'], default=',', help='specify csv report delimiter (defaults to ",")')
+    # TODO (ricardoapl) Add argument for downloads
     args = parser.parse_args()
     return args
 
@@ -34,7 +36,7 @@ def run(args):
     core.images.extract_all(images_path)
 
     if args.format == 'html':
-        # XXX (ricardoapl) Move method to other module (utils?)
+        # XXX (ricardoapl) It's not core.messages responsibility to create such files!
         core.messages.create_js_files()
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
@@ -43,13 +45,19 @@ def run(args):
         # TODO (ricardoapl) Fill HTML headers for core.contacts
         conversations_template = core.messages.CONVERSATIONS_TEMPLATE_FILENAME
         messages_template = core.messages.MESSAGES_TEMPLATE_FILENAME
-        # XXX (ricardoapl) There should be only one report_html method to call
+        # XXX (ricardoapl) There should be only one core.messages.report_html method to call
         core.messages.report_html_conversations(conversations_template)
         core.messages.report_html_messages(messages_template)
         # TODO (ricardoapl) Fill HTML headers for core.messages
         images_template = core.images.TEMPLATE_FILENAME
         images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
         core.images.report_html(images_template, images_report)
+        # XXX (ricardoapl) It's not core.contacts responsibility to create such files!
+        core.contacts.create_miscellaneous_files()
+        # TODO (ricardoapl) Downloads should be optional!
+        # XXX (ricardoapl) How does __main__.py know the name of report dir?
+        report_dir = os.path.join(args.output, "report")
+        core.downloads.download_contact_images(report_dir)
         # TODO (ricardoapl) Open HTML report (which one?)
     elif args.format == 'csv':
         delim = args.delimiter

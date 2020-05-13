@@ -24,7 +24,7 @@ def download_contact_images(path):
     PATH = os.path.expandvars(path)
     SMALL_IMAGES_PATH = PATH + f'\contacts\images\small'
     LARGE_IMAGES_PATH = PATH + f'\contacts\images\large'
-    CONTACTS_FILENAME = PATH + f'\\' + CONTACTS_FILENAME
+    CONTACTS_FILENAME = PATH + f'\\{CONTACTS_FILENAME}'
     # TODO (orainha) Check network connection?
     if (check_internet_connection()):
         download_small_contact_images(CONTACTS_FILENAME, SMALL_IMAGES_PATH)
@@ -76,7 +76,7 @@ def download_small_contact_images(contacts_filename, path):
                     print(error)
             else:
                 # Url not found, get default image to replace
-                not_found_image_filename = PATH + f'images\\notfound.jpg'
+                not_found_image_filename = PATH + f'\\images\\notfound.jpg'
                 try:
                     # Copy default "not found" image and name it with contact id as file name
                     shutil.copy2(not_found_image_filename, SMALL_IMAGES_PATH +
@@ -131,7 +131,7 @@ def download_large_contact_images(contacts_filename, path):
                     print(error)
             else:
                 # URL not found, get default image to replace
-                not_found_image_filename = PATH + f'images\\notfound.jpg'
+                not_found_image_filename = PATH + f'\\images\\notfound.jpg'
                 try:
                     # Copy default "not found" image and name it with contact id as file name
                     shutil.copy2(not_found_image_filename, LARGE_IMAGES_PATH +
@@ -141,11 +141,3 @@ def download_large_contact_images(contacts_filename, path):
             counter = counter + 1
     except IOError as error:
         print(error)
-
-
-def main():
-    download_contact_images(PATH)
-
-
-if __name__ == '__main__':
-    main()
