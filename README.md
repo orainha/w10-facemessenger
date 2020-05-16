@@ -33,15 +33,18 @@ This software is distributed under the MIT License.
 
 Furthermore, it makes use of:
 
-- BeautifulSoup (MIT License)
-    - Copyright (c) 2004-2019 Leonard Richardson
-
 - Axios (MIT License)
-    - Copyright (c) 2014-2020 Matt Zabriskie
+    - Copyright 2014-2020 Matt Zabriskie
+
+- BeautifulSoup (MIT License)
+    - Copyright 2004-2019 Leonard Richardson
 
 - Bootstrap (MIT License)
-    - Copyright (c) 2011-2020 Twitter, Inc.
-    - Copyright (c) 2011-2020 The Bootstrap Authors
+    - Copyright 2011-2020 Twitter, Inc.
+    - Copyright 2011-2020 The Bootstrap Authors
 
 - Hindsight (Apache License Version 2.0)
-    - Copyright (c) 2015 Ryan Benson
+    - Copyright 2015 Ryan Benson
+
+- Requests (Apache License Version 2.0)
+    - Copyright 2019 Kenneth Reitz
