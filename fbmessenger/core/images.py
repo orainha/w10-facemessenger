@@ -18,6 +18,8 @@ class ImagesCollector():
     def __init__(self):
         pass
 
+def test(self, path):
+    print (path)
 
 # XXX (ricardoapl) Improve docstring according to PEP8
 def extract_one(src, dst):

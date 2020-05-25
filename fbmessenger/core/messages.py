@@ -5,6 +5,8 @@ import csv
 import json
 import sqlite3
 from pathlib import Path
+# TODO: (orainha) Remove import requests
+import requests
 
 from bs4 import BeautifulSoup
 
@@ -80,7 +82,7 @@ def create_js_files():
         print(error)
 
 
-def report_html_messages(template_path):
+def report_html_messages(template_path, depth):
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -271,7 +273,7 @@ def report_html_messages(template_path):
             print(error)
 
 
-def report_html_conversations(template_path):
+def report_html_conversations(template_path, depth):
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -332,15 +334,36 @@ def report_html_conversations(template_path):
                 continue
 
         tr_tag_data = html_doc_new_file.new_tag('tr')
+        # td 1
         td_empty2 = html_doc_new_file.new_tag('td')
-        td_pic = html_doc_new_file.new_tag('td')
-        href_pic_tag = html_doc_new_file.new_tag('a')
-        href_pic_tag["href"] = str(participant_large_pic)
-        img_tag = html_doc_new_file.new_tag('img')
-        img_tag["src"] = str(participant_pic)
-        href_pic_tag.append(img_tag)
-        td_pic.append(href_pic_tag)
-
+        # td 2
+        if (depth == "fast"):
+            td_download_photo = html_doc_new_file.new_tag('td')
+            button_tag = html_doc_new_file.new_tag('button')
+            button_tag['id'] = participant_contact_id
+            button_tag['class'] = 'btn_download_conversation_contact_image'
+            button_tag['value'] = participant_large_pic
+            button_tag.append('Download Image')
+            td_download_photo.append(button_tag)
+            pass
+        elif (depth == "complete"):
+            td_photo = html_doc_new_file.new_tag('td')
+            href_tag = html_doc_new_file.new_tag('a')
+            href_tag['href'] = f'conversations\images\large\{participant_contact_id}.jpg'
+            img_tag = html_doc_new_file.new_tag('img')
+            img_tag['src'] = f'conversations\images\small\{participant_contact_id}.jpg'
+            href_tag.append(img_tag)
+            extract_images(NEW_FILE_PATH, participant_pic, participant_large_pic, str(participant_contact_id))
+            td_photo.append(href_tag)
+            pass
+        # td_pic = html_doc_new_file.new_tag('td')
+        # href_pic_tag = html_doc_new_file.new_tag('a')
+        # href_pic_tag["href"] = str(participant_large_pic)
+        # img_tag = html_doc_new_file.new_tag('img')
+        # img_tag["src"] = str(participant_pic)
+        # href_pic_tag.append(img_tag)
+        # td_pic.append(href_pic_tag)
+        # td 3
         td_msgs = html_doc_new_file.new_tag('td')
         href_msgs_tag = html_doc_new_file.new_tag('a')
         href_msgs_tag["href"] = f'messages\{str(thread_key)}.html'
@@ -348,7 +371,12 @@ def report_html_conversations(template_path):
         td_msgs.append(href_msgs_tag)
 
         tr_tag_data.append(td_empty2)
-        tr_tag_data.append(td_pic)
+
+        if (depth == 'fast'):
+            tr_tag_data.append(td_download_photo)
+        elif (depth == 'complete'):
+            tr_tag_data.append(td_photo)
+
         tr_tag_data.append(td_msgs)
 
         html_doc_new_file.table.append(tr_tag_data)
@@ -472,3 +500,67 @@ def output_file_path(path):
     except IOError as error:
         print(error)
         exit()
+
+def check_internet_connection(host='http://google.com'):
+    try:
+        req = requests.get(host)  # Python 3.x
+        return True
+    except:
+        return False
+
+def extract_images(path, small_pic_url, large_pic_url, contact_id):
+    global PATH
+    FILENAME = 'conversations.html'
+    PATH = os.path.expandvars(path)
+    SMALL_IMAGES_PATH = PATH + f'\conversations\images\small'
+    LARGE_IMAGES_PATH = PATH + f'\conversations\images\large'
+    FILENAME = PATH + f'\\{FILENAME}'
+    # TODO (orainha) Check network connection?
+    if (check_internet_connection()):
+        extract(SMALL_IMAGES_PATH, small_pic_url, contact_id)
+        extract(LARGE_IMAGES_PATH, large_pic_url, contact_id)
+    else:
+        print("Warning: Internet connection is required for images display")
+
+
+def extract(path, url, contact_id):
+    try:
+        # Create diretory if not exists
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        # Make request
+        req = requests.get(url)
+
+        if req.status_code == requests.codes.ok:
+            # Get file extension
+            ext = ''
+            if url.find(".jpg") > 0:
+                ext = ".jpg"
+            # Create image file with contact id as file name
+            image_filename = path + "\\" + contact_id + ext
+            try:
+                f = open(image_filename, 'wb+')
+                f.write(req.content)
+                f.close()
+            except IOError as error:
+                print(error)
+        else:
+            # URL not found, get default image to replace
+            not_found_image_filename = PATH + f'\\images\\notfound.jpg'
+            try:
+                #create /images if not exists
+                if not os.path.exists(NEW_FILE_PATH + "\images"):
+                    os.makedirs(NEW_FILE_PATH + "\images")
+                    images_dir = os.path.join(os.path.dirname(__file__), r'..\templates\images\\')
+                    images = os.listdir(images_dir)
+                    for image in images:
+                        shutil.copy2(images_dir + image,
+                                    NEW_FILE_PATH + "\images")
+                # Copy default "not found" image and name it with contact id as file name
+                shutil.copy2(not_found_image_filename, path +
+                                '\\' + contact_id + '.jpg')
+            except IOError as error:
+                print(error)
+    except IOError as error:
+        print(error)
