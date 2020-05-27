@@ -12,20 +12,18 @@ def check_internet_connection(host='http://google.com'):
 
 def replace_by_default(output_path, file_path, filename):
     # URL not found, get default image to replace
-    # XXX ATENCION to next line  (orainha)
-    #not_found_image_filename = PATH + f'\images\\notfound.jpg'
     not_found_image_filename = output_path + f'images\\notfound.jpg'
     try:
         #create /images if not exists
         if not os.path.exists(output_path + "\images"):
             os.makedirs(output_path + "\images")
-            # print ("Created dir: " + output_path + "\images")
+
             images_dir = os.path.join(os.path.dirname(__file__), r'..\templates\images\\')
             images = os.listdir(images_dir)
             for image in images:
                 shutil.copy2(images_dir + image,
                             output_path + "\images")
-                # print ("Copied: " + images_dir + image + " to " + output_path + "\images")
+
         # Copy default "not found" image and name it with contact id as file name
         shutil.copy2(not_found_image_filename, file_path +
                         '\\' + filename + '.jpg')
