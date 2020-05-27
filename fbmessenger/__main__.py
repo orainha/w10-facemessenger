@@ -34,7 +34,6 @@ def run(args):
 
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
-    # TODO (orainha) Don't forget to this uncomment this line
     core.images.extract_all(images_path)
     
     if args.format == 'html':
@@ -43,20 +42,17 @@ def run(args):
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
         contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
-        # TODO (orainha) Don't forget to this uncomment this line
         core.contacts.report_html(db_path, contacts_template, args.depth)
         # TODO (ricardoapl) Fill HTML headers for core.contacts
         conversations_template = core.messages.CONVERSATIONS_TEMPLATE_FILENAME
         messages_template = core.messages.MESSAGES_TEMPLATE_FILENAME
         # XXX (ricardoapl) There should be only one core.messages.report_html method to call
         core.messages.report_html_conversations(conversations_template, args.depth)
-        # TODO (orainha) Don't forget to this uncomment this line
         core.messages.report_html_messages(messages_template, args.depth)
         # TODO (ricardoapl) Fill HTML headers for core.messages
         images_template = core.images.TEMPLATE_FILENAME
         images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
-        # XXX (orainha) Don't forget to this uncomment this line
-        core.images.report_html(images_template, images_report)
+        core.images.report_html(images_template, images_report, args.depth)
         # TODO (ricardoapl) Open HTML report (which one?)
 
     elif args.format == 'csv':
