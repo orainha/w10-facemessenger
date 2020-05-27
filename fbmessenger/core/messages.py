@@ -193,52 +193,133 @@ def report_html_messages(template_path, depth):
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(attachment_title +
                                       " - " + attachment_subtitle)
-                elif "application" in attachment_url_mimetype:
-                    filetype = attachment_url_mimetype.split('/')[1]
-                    href_tag = html_doc_new_file.new_tag('a')
-                    href_tag['href'] = attachment_playable_url
-                    href_tag.append("["+filetype+"] " + attachment_filename)
-                    td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(href_tag)
-                # Se não tiver "xma_rtc" há de ser outra coisa, e sempre assim
+                # # Se não tiver "xma_rtc" há de ser outra coisa, e sempre assim
                 elif "image" in attachment_url_mimetype:
-                    img_tag = html_doc_new_file.new_tag('img')
-                    img_tag['src'] = attachment_preview_url
-                    td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(img_tag)
+                    if (depth == "fast"):
+                        button_tag = html_doc_new_file.new_tag('button')
+                        button_tag['id'] = attachment_filename
+                        button_tag['class'] = 'btn_download_message_file'
+                        button_tag['value'] = attachment_preview_url
+                        button_tag.append('Download Image')
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(button_tag)
+                    elif (depth == "complete"):
+                        filetype = attachment_url_mimetype.split('/')[1]
+                        extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                        img_tag = html_doc_new_file.new_tag('img')
+                        img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}.'+ filetype
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(img_tag)
                 # TODO (orainha) Continuar esta parte, verificar também nos outros casos de threadkey
                 elif "audio" in attachment_url_mimetype:
-                    href_tag = html_doc_new_file.new_tag('a')
-                    href_tag['href'] = attachment_playable_url
-                    href_tag.append(
-                        "Audio - " + attachment_title + " - " + attachment_subtitle)
-                    td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(href_tag)
+                    if (depth == "fast"):
+                        button_tag = html_doc_new_file.new_tag('button')
+                        button_tag['id'] = attachment_filename
+                        button_tag['class'] = 'btn_download_message_file'
+                        button_tag['value'] = attachment_playable_url
+                        button_tag.append('Download Audio')
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(button_tag)
+                    elif (depth == "complete"):
+                        extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename,'',str(thread_key))
+                        href_tag = html_doc_new_file.new_tag('a')
+                        href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}'
+                        href_tag.append(
+                            "Audio - " + attachment_title + " - " + attachment_subtitle)
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(href_tag)
                 elif "video" in attachment_url_mimetype:
-                    img_tag = html_doc_new_file.new_tag('img')
-                    img_tag['src'] = attachment_preview_url
-                    td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(img_tag)
-                    duration = "["+attachment_duration + \
-                        "s]" if attachment_duration != "None" else ""
-                    title = " - " + attachment_title if attachment_title != "None" else ""
-                    subtitle = " - " + attachment_subtitle if attachment_subtitle != "None" else ""
-                    td_message.append("Video " + duration + title + subtitle)
+                    if (depth == "fast"):
+                        button_tag = html_doc_new_file.new_tag('button')
+                        button_tag['id'] = attachment_filename
+                        button_tag['class'] = 'btn_download_message_file'
+                        button_tag['value'] = attachment_playable_url
+                        button_tag.append('Download Video')
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(button_tag)
+                    elif (depth == "complete"):
+                        strSplit = attachment_preview_url.split('?')
+                        strLen = len(strSplit[0])
+                        filetype = strSplit[0][strLen-3:strLen]
+                        extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                        extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename,'',str(thread_key))
+                        img_tag = html_doc_new_file.new_tag('img')
+                        filetype = '.' + filetype
+                        img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}' + filetype
+                        duration = "["+attachment_duration + \
+                            "s]" if attachment_duration != "None" else ""
+                        title = " - " + attachment_title if attachment_title != "None" else ""
+                        subtitle = " - " + attachment_subtitle if attachment_subtitle != "None" else ""
+                        img_tag.append("Video " + duration + title + subtitle)
+                        href_tag = html_doc_new_file.new_tag('a')
+                        href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}'
+                        href_tag.append(img_tag)
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(href_tag)
                 else:
+                    # Can be gifs, files
+                    if (depth == "fast"):
+                        button_tag = html_doc_new_file.new_tag('button')
+                        button_tag['id'] = attachment_filename
+                        button_tag['class'] = 'btn_download_message_file'
+                        if (attachment_preview_url != 'None'):
+                            button_tag['value'] = attachment_preview_url
+                        elif (attachment_playable_url != 'None'):
+                            button_tag['value'] = attachment_playable_url
+                        button_tag.append('Download File')
+                        td_message = html_doc_new_file.new_tag('td')
+                        td_message.append(button_tag)
+                    elif (depth == "complete"):
+                        filetype = ''
+                        # if filename has his filetype written...
+                        if (attachment_filename.find('.') > 0):
+                            filetype = ''
+                        else:
+                            if (attachment_url_mimetype != 'None'):
+                                filetype = attachment_url_mimetype.split('/')[1]
+                                filetype = '.' + filetype
+                            else:
+                                filetype = ''
+
+                        if (attachment_preview_url != 'None'):
+                            extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                            img_tag = html_doc_new_file.new_tag('img')
+                            img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}' + filetype
+                            td_message = html_doc_new_file.new_tag('td')
+                            td_message.append(img_tag)
+
+                        elif (attachment_playable_url != 'None'):
+                            extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
+                            p_tag = html_doc_new_file.new_tag('p')
+                            p_tag.append(attachment_filename)
+                            href_tag = html_doc_new_file.new_tag('a')
+                            href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}' + filetype
+                            href_tag.append(p_tag)
+                            td_message = html_doc_new_file.new_tag('td')
+                            td_message.append(href_tag)
+            elif "xma_web_url" in attachment_type:
+                if (depth == "fast"):
+                    button_tag = html_doc_new_file.new_tag('button')
+                    button_tag['id'] = attachment_filename
+                    button_tag['class'] = 'btn_download_message_file'
+                    button_tag['value'] = attachment_preview_url
+                    button_tag.append('Download Image')
+                    td_message = html_doc_new_file.new_tag('td')
+                    td_message.append(button_tag)
+                    td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
+                elif (depth == "complete"):
+                    filetype = ''
+                    if (attachment_url_mimetype != 'None'):
+                        filetype = attachment_url_mimetype.split('/')[1]
+                    else:
+                        filetype = 'jpg'
+                    extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                     img_tag = html_doc_new_file.new_tag('img')
-                    img_tag['src'] = attachment_preview_url
+                    filetype = '.' + filetype
+                    img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}' + filetype
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(img_tag)
-            elif "xma_web_url" in attachment_type:
-                href_tag = html_doc_new_file.new_tag('a')
-                href_tag['href'] = message
-                img_tag = html_doc_new_file.new_tag('img')
-                img_tag['src'] = attachment_preview_url
-                href_tag.append(img_tag)
-                td_message = html_doc_new_file.new_tag('td')
-                td_message.append(href_tag)
-                td_message.append(
-                    message + " - " + attachment_title + " - " + attachment_subtitle)
+                    td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
             else:
                 td_message = html_doc_new_file.new_tag('td')
                 td_message.append(message)
@@ -338,24 +419,22 @@ def report_html_conversations(template_path, depth):
         td_empty2 = html_doc_new_file.new_tag('td')
         # td 2
         if (depth == "fast"):
-            td_download_photo = html_doc_new_file.new_tag('td')
             button_tag = html_doc_new_file.new_tag('button')
             button_tag['id'] = participant_contact_id
             button_tag['class'] = 'btn_download_conversation_contact_image'
             button_tag['value'] = participant_large_pic
             button_tag.append('Download Image')
+            td_download_photo = html_doc_new_file.new_tag('td')
             td_download_photo.append(button_tag)
-            pass
         elif (depth == "complete"):
-            td_photo = html_doc_new_file.new_tag('td')
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = f'conversations\images\large\{participant_contact_id}.jpg'
             img_tag = html_doc_new_file.new_tag('img')
             img_tag['src'] = f'conversations\images\small\{participant_contact_id}.jpg'
             href_tag.append(img_tag)
-            extract_images(NEW_FILE_PATH, participant_pic, participant_large_pic, str(participant_contact_id))
+            extract_images(NEW_FILE_PATH, participant_pic, participant_large_pic, 'jpg', str(participant_contact_id))
+            td_photo = html_doc_new_file.new_tag('td')
             td_photo.append(href_tag)
-            pass
         # td_pic = html_doc_new_file.new_tag('td')
         # href_pic_tag = html_doc_new_file.new_tag('a')
         # href_pic_tag["href"] = str(participant_large_pic)
@@ -508,7 +587,16 @@ def check_internet_connection(host='http://google.com'):
     except:
         return False
 
-def extract_images(path, small_pic_url, large_pic_url, contact_id):
+def extract_message_file(path, url, filename, filetype, msg_thread_key):
+    PATH = os.path.expandvars(path)
+    IMAGES_PATH = PATH + f'\\files\{msg_thread_key}'
+    if (check_internet_connection()):
+        extract(IMAGES_PATH, url, filename, filetype)
+    else:
+        print("Warning: Internet connection is required for files display")
+
+
+def extract_images(path, small_pic_url, large_pic_url, filetype, contact_id):
     global PATH
     FILENAME = 'conversations.html'
     PATH = os.path.expandvars(path)
@@ -517,13 +605,13 @@ def extract_images(path, small_pic_url, large_pic_url, contact_id):
     FILENAME = PATH + f'\\{FILENAME}'
     # TODO (orainha) Check network connection?
     if (check_internet_connection()):
-        extract(SMALL_IMAGES_PATH, small_pic_url, contact_id)
-        extract(LARGE_IMAGES_PATH, large_pic_url, contact_id)
+        extract(SMALL_IMAGES_PATH, small_pic_url, contact_id, filetype)
+        extract(LARGE_IMAGES_PATH, large_pic_url, contact_id, filetype)
     else:
         print("Warning: Internet connection is required for images display")
 
 
-def extract(path, url, contact_id):
+def extract(path, url, name, filetype):
     try:
         # Create diretory if not exists
         if not os.path.exists(path):
@@ -533,14 +621,14 @@ def extract(path, url, contact_id):
         req = requests.get(url)
 
         if req.status_code == requests.codes.ok:
-            # Get file extension
-            ext = ''
-            if url.find(".jpg") > 0:
-                ext = ".jpg"
+            
             # Create image file with contact id as file name
-            image_filename = path + "\\" + contact_id + ext
+            if (filetype != ''):
+                filename = path + "\\" + name + '.' + filetype
+            else:
+                filename = path + "\\" + name + filetype
             try:
-                f = open(image_filename, 'wb+')
+                f = open(filename, 'wb+')
                 f.write(req.content)
                 f.close()
             except IOError as error:
@@ -559,8 +647,9 @@ def extract(path, url, contact_id):
                                     NEW_FILE_PATH + "\images")
                 # Copy default "not found" image and name it with contact id as file name
                 shutil.copy2(not_found_image_filename, path +
-                                '\\' + contact_id + '.jpg')
+                                '\\' + name + '.jpg')
             except IOError as error:
                 print(error)
     except IOError as error:
         print(error)
+        print(name)
