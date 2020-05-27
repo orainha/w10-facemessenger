@@ -91,7 +91,6 @@ def append_html(data, html, depth):
     filename_counter = 1
     previous_filename = ''
     for datum in data:
-        # print(datum)
         profile_tag = html.new_tag('td')
         profile_tag.string = datum['profile']
         location_tag = html.new_tag('td')
@@ -101,8 +100,6 @@ def append_html(data, html, depth):
 
         image_tag = html.new_tag('td')
         # Get file name
-        # strSplit = datum['profile'].split('\\')
-        # filename = strSplit[len(strSplit)-1]
         filename = utils.get_filename_from_url(datum['url'])
         # Get file type
         filetype = utils.get_filetype(datum['url'])
@@ -115,11 +112,6 @@ def append_html(data, html, depth):
             button_tag.append('Download Image')
             image_tag.append(button_tag)
         elif (depth == "complete"):
-            # filename = filename.split('/')
-            # if (previous_filename == filename):
-            #     filename = filename + '('+str(filename_counter)+')'
-            #     filename_counter = filename_counter + 1
-            #filename = utils.get_filename_from_url(datum['url'])
             img_tag = html.new_tag('img')
             # We are now ready for extract
             extract_image(NEW_FILE_PATH, datum['url'], filename, filetype)
