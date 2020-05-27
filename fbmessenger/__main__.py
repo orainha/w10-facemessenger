@@ -43,6 +43,7 @@ def run(args):
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
         contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
+        # TODO (orainha) Don't forget to this uncomment this line
         core.contacts.report_html(db_path, contacts_template, args.depth)
         # TODO (ricardoapl) Fill HTML headers for core.contacts
         conversations_template = core.messages.CONVERSATIONS_TEMPLATE_FILENAME
