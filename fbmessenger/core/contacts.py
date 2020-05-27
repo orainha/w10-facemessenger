@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 from core.headers import fill_header
 
+import utils.files as utils
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
 CONTACTS_TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), r'..\templates\template_contacts.html')
@@ -69,22 +70,23 @@ def report_html(database_path, template_path, depth):
             td_id = html_doc_new_file.new_tag('td')
             td_id.append(contact_id)
             # td 2
+            filetype = utils.get_filetype(contact_large_pic)
             if (depth == 'fast'):
                 td_download_photo = html_doc_new_file.new_tag('td')
                 button_tag = html_doc_new_file.new_tag('button')
-                button_tag['id'] = contact_id
+                button_tag['id'] = str(contact_id) + filetype
                 button_tag['class'] = 'btn_download_contact_image'
                 button_tag['value'] = contact_large_pic
                 button_tag.append('Download Image')
                 td_download_photo.append(button_tag)
             elif (depth == 'complete'):
+                extract_images(NEW_FILE_PATH, contact_pic, contact_large_pic, contact_id, filetype)
                 td_photo = html_doc_new_file.new_tag('td')
                 href_tag = html_doc_new_file.new_tag('a')
-                href_tag['href'] = f'contacts\images\large\{contact_id}.jpg'
+                href_tag['href'] = f'contacts\images\large\{contact_id}{filetype}'
                 img_tag = html_doc_new_file.new_tag('img')
-                img_tag['src'] = f'contacts\images\small\{contact_id}.jpg'
+                img_tag['src'] = f'contacts\images\small\{contact_id}{filetype}'
                 href_tag.append(img_tag)
-                extract_images(NEW_FILE_PATH, contact_pic, contact_large_pic, contact_id)
                 td_photo.append(href_tag)
             # td 3
             td_name = html_doc_new_file.new_tag('td')
@@ -180,67 +182,14 @@ def output_file_path(path):
         exit()
 
 
-def check_internet_connection(host='http://google.com'):
-    try:
-        req = requests.get(host)  # Python 3.x
-        return True
-    except:
-        return False
 
-
-def extract_images(path, small_pic_url, large_pic_url, contact_id):
+def extract_images(output_path, small_pic_url, large_pic_url, contact_id, filetype):
     global PATH
     CONTACTS_FILENAME = 'contacts.html'
-    PATH = os.path.expandvars(path)
+    PATH = os.path.expandvars(output_path)
     SMALL_IMAGES_PATH = PATH + f'\contacts\images\small'
     LARGE_IMAGES_PATH = PATH + f'\contacts\images\large'
     CONTACTS_FILENAME = PATH + f'\\{CONTACTS_FILENAME}'
-    # TODO (orainha) Check network connection?
-    if (check_internet_connection()):
-        extract(SMALL_IMAGES_PATH, small_pic_url, contact_id)
-        extract(LARGE_IMAGES_PATH, large_pic_url, contact_id)
-    else:
-        print("Warning: Internet connection is required for images display")
-
-
-def extract(path, url, contact_id):
-    try:
-        # Create diretory if not exists
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        # Make request
-        req = requests.get(url)
-
-        if req.status_code == requests.codes.ok:
-            # Get file extension
-            ext = ''
-            if url.find(".jpg") > 0:
-                ext = ".jpg"
-            # Create image file with contact id as file name
-            image_filename = path + "\\" + contact_id + ext
-            try:
-                f = open(image_filename, 'wb+')
-                f.write(req.content)
-                f.close()
-            except IOError as error:
-                print(error)
-        else:
-            # URL not found, get default image to replace
-            not_found_image_filename = PATH + f'\\images\\notfound.jpg'
-            try:
-                #create /images if not exists
-                if not os.path.exists(NEW_FILE_PATH + "\images"):
-                    os.makedirs(NEW_FILE_PATH + "\images")
-                    images_dir = os.path.join(os.path.dirname(__file__), r'..\templates\images\\')
-                    images = os.listdir(images_dir)
-                    for image in images:
-                        shutil.copy2(images_dir + image,
-                                    NEW_FILE_PATH + "\images")
-                # Copy default "not found" image and name it with contact id as file name
-                shutil.copy2(not_found_image_filename, path +
-                                '\\' + contact_id + '.jpg')
-            except IOError as error:
-                print(error)
-    except IOError as error:
-        print(error)
+    
+    utils.extract(output_path, SMALL_IMAGES_PATH, small_pic_url, contact_id, filetype)
+    utils.extract(output_path, LARGE_IMAGES_PATH, large_pic_url, contact_id, filetype)

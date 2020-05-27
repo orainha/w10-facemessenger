@@ -14,10 +14,7 @@
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            if (filename.search('.mp4')>0)
-                link.setAttribute('download', filename);
-            else
-                link.setAttribute('download', filename + '.jpg');
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
         }).catch(function (error)
@@ -50,6 +47,14 @@
     var btns_download_message_files = document.getElementsByClassName('btn_download_message_file');
     for(let i=0; i<btns_download_message_files.length; i++) {
         let btn =  btns_download_message_files[i];
+        btn.addEventListener('click', download)
+    };
+
+    
+    //Images
+    var btns_download_images_files = document.getElementsByClassName('btn_download_images_file');
+    for(let i=0; i<btns_download_images_files.length; i++) {
+        let btn =  btns_download_images_files[i];
         btn.addEventListener('click', download)
     };
 

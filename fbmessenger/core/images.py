@@ -3,14 +3,18 @@ import sys
 import subprocess
 import csv
 import json
-
 import bs4
+import requests
+import shutil
+
+import utils.files as utils
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
 TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_images.html')
 REPORT_FILENAME = 'report_images.html'
 NEW_FILE_PATH = ''
+IMAGES_PATH = ''
 PATH = ''
 
 
@@ -65,7 +69,7 @@ def clean(path):
 
 
 # XXX (ricardoapl) Specify assumptions like 'extract_all() has been run'
-def report_html(template_path, report_path):
+def report_html(template_path, report_path, depth):
     with open(template_path, 'r') as template:
         content = template.read()
     html = bs4.BeautifulSoup(content, features='html.parser')
@@ -76,31 +80,59 @@ def report_html(template_path, report_path):
             if entry.is_file() and entry.name.startswith('tmp') and entry.name.endswith('.jsonl'):
                 content = read_jsonl(entry.name)
                 image_content = filter_image_content(content)
-                append_html(image_content, html)
+                append_html(image_content, html, depth)
     with open(report_path, 'w') as report:
         output = html.prettify()
         report.write(output)
 
 
-def append_html(data, html):
+def append_html(data, html, depth):
     tbody = html.tbody
+    filename_counter = 1
+    previous_filename = ''
     for datum in data:
+        # print(datum)
         profile_tag = html.new_tag('td')
         profile_tag.string = datum['profile']
         location_tag = html.new_tag('td')
         location_tag.string = datum['location']
         datetime_tag = html.new_tag('td')
         datetime_tag.string = datum['datetime']
-        link_tag = html.new_tag('a')
-        link_tag['href'] = datum['url']
-        link_tag.string = datum['url']
-        url_tag = html.new_tag('td')
-        url_tag.append(link_tag)
+
+        image_tag = html.new_tag('td')
+        # Get file name
+        # strSplit = datum['profile'].split('\\')
+        # filename = strSplit[len(strSplit)-1]
+        filename = utils.get_filename_from_url(datum['url'])
+        # Get file type
+        filetype = utils.get_filetype(datum['url'])
+        if (depth == "fast"):
+            # Create button
+            button_tag = html.new_tag('button')
+            button_tag['id'] = filename + filetype
+            button_tag['class'] = 'btn_download_images_file'
+            button_tag['value'] = datum['url']
+            button_tag.append('Download Image')
+            image_tag.append(button_tag)
+        elif (depth == "complete"):
+            # filename = filename.split('/')
+            # if (previous_filename == filename):
+            #     filename = filename + '('+str(filename_counter)+')'
+            #     filename_counter = filename_counter + 1
+            #filename = utils.get_filename_from_url(datum['url'])
+            img_tag = html.new_tag('img')
+            # We are now ready for extract
+            extract_image(NEW_FILE_PATH, datum['url'], filename, filetype)
+            # Show on html
+            img_tag['src'] = f'images-search\{filename}{filetype}'
+            image_tag.append(img_tag)
+            previous_filename = filename
+
         row_tag = html.new_tag('tr')
         row_tag.append(profile_tag)
         row_tag.append(location_tag)
         row_tag.append(datetime_tag)
-        row_tag.append(url_tag)
+        row_tag.append(image_tag)
         tbody.append(row_tag)
 
 
@@ -173,13 +205,28 @@ def input_file_path(path):
 
 def output_file_path(path):
     global NEW_FILE_PATH
+    global IMAGES_PATH
     path = os.path.expandvars(path)
     NEW_FILE_PATH = path + "\\report\\"
+    IMAGES_PATH = NEW_FILE_PATH + "images-search\\"
     try:
         if not os.path.exists(path):
             raise IOError("Error: Given destination output path not found")
         if not os.path.exists(NEW_FILE_PATH):
             os.makedirs(NEW_FILE_PATH)
+        if not os.path.exists(IMAGES_PATH):
+            os.makedirs(IMAGES_PATH)
     except IOError as error:
         print(error)
         exit()
+
+
+
+def extract_image(path, url, name, filetype):
+    global PATH
+    PATH = os.path.expandvars(path)
+    IMAGES_PATH = PATH + f'images-search'
+    utils.extract(path, IMAGES_PATH, url, name, filetype)
+
+
+
