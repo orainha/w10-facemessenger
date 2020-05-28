@@ -1,7 +1,5 @@
 # W10-FaceMessenger
 
-## Description
-
 W10-FaceMessenger is a set of scripts bundled together to extract the most significant artifacts produced by the usage of the Windows Store application Messenger (Beta) by Facebook Inc.
 
 As of now, W10-FaceMessenger is capable of extracting the following content:
