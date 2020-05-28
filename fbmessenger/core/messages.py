@@ -202,7 +202,7 @@ def report_html_messages(template_path, depth):
                     if (depth == "fast"):
                         button_tag = html_doc_new_file.new_tag('button')
                         button_tag['id'] = attachment_filename + filetype
-                        button_tag['class'] = 'btn_download_message_file'
+                        button_tag['class'] = 'btn_download_message_image'
                         button_tag['value'] = attachment_playable_url
                         button_tag.append('Download Image')
                         td_message = html_doc_new_file.new_tag('td')
@@ -286,11 +286,6 @@ def report_html_messages(template_path, depth):
                             filetype = ''
                         else:
                             filetype = utils.get_filetype(attachment_playable_url)
-                            # if (attachment_url_mimetype != 'None'):
-                            #     filetype = attachment_url_mimetype.split('/')[1]
-                            #     filetype = '.' + filetype
-                            # else:
-                            #     filetype = ''
 
                         if (attachment_preview_url != 'None'):
                             extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
@@ -327,10 +322,6 @@ def report_html_messages(template_path, depth):
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
                 elif (depth == "complete"):
                     filetype = utils.get_filetype(attachment_playable_url)
-                    # if (attachment_url_mimetype != 'None'):
-                    #     filetype = attachment_url_mimetype.split('/')[1]
-                    # else:
-                    #     filetype = '.jpg'
                     extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                     img_tag = html_doc_new_file.new_tag('img')
                     img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}{filetype}'
@@ -457,6 +448,7 @@ def report_html_conversations(template_path, depth):
         td_msgs = html_doc_new_file.new_tag('td')
         href_msgs_tag = html_doc_new_file.new_tag('a')
         href_msgs_tag["href"] = f'messages\{str(thread_key)}.html'
+        href_msgs_tag["target"] = 'targetframemessages'
         href_msgs_tag.append(str(participant_name))
         td_msgs.append(href_msgs_tag)
         tr_tag_data.append(td_empty2)

@@ -28,6 +28,12 @@
             }
         });
     }
+
+    function link() 
+    {
+        let url = this.value;
+        window.location.href = url
+    }
     
     // Contacts
     var btns_download = document.getElementsByClassName('btn_download_contact_image');
@@ -43,19 +49,32 @@
         btn.addEventListener('click', download)
     };
 
+    //Message Image
+    var btns_download_message_images = document.getElementsByClassName('btn_download_message_image');
+    for(let i=0; i<btns_download_message_images.length; i++) {
+        let btn =  btns_download_message_images[i];
+        btn.addEventListener('click', download)
+    };
+
     //Messages
     var btns_download_message_files = document.getElementsByClassName('btn_download_message_file');
     for(let i=0; i<btns_download_message_files.length; i++) {
         let btn =  btns_download_message_files[i];
-        btn.addEventListener('click', download)
+        btn.addEventListener('click', link)
     };
 
-    
     //Images
     var btns_download_images_files = document.getElementsByClassName('btn_download_images_file');
     for(let i=0; i<btns_download_images_files.length; i++) {
         let btn =  btns_download_images_files[i];
-        btn.addEventListener('click', download)
+        let filename = btn.id;
+        if (filename.search('.gif') > 0)
+        {
+            btn.addEventListener('click', link)
+        }else
+        {
+            btn.addEventListener('click', download)
+        }
     };
 
 })();
