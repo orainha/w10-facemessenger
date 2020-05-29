@@ -67,7 +67,8 @@ def report_html(database_path, template_path, depth):
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             # td 1
-            td_id = html_doc_new_file.new_tag('td')
+            td_id = html_doc_new_file.new_tag('th')
+            td_id["scope"] = "row"
             td_id.append(contact_id)
             # td 2
             filetype = utils.get_filetype(contact_large_pic)
@@ -86,6 +87,7 @@ def report_html(database_path, template_path, depth):
                 href_tag['href'] = f'contacts\images\large\{contact_id}{filetype}'
                 img_tag = html_doc_new_file.new_tag('img')
                 img_tag['src'] = f'contacts\images\small\{contact_id}{filetype}'
+                img_tag['id'] = 'imgContact'
                 href_tag.append(img_tag)
                 td_photo.append(href_tag)
             # td 3
@@ -145,42 +147,17 @@ def report_csv(delim):
         writer.writerows(rows)
 
 
-def input_file_path(path):
+def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
+    global PATH
     global DB_PATH
-    PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
-    # TODO (ricardoapl) Extract into common method
-    try:
-        if os.path.exists(PATH):
-            auth_id = 0
-            f_data = open(PATH + 'data', 'r')
-            data = json.load(f_data)
-            for item in data:
-                txt = item.split(":")
-                auth_id = txt[1]
-                break
-            db_file_name = "msys_" + auth_id + ".db"
-            DB_PATH = PATH + db_file_name
-        else:
-            raise IOError("Error: File not found on given path")
-    except IOError as error:
-        print(error)
-        exit()
+    PATH = utils.get_input_file_path(user_path)
+    DB_PATH = utils.get_db_path(PATH)
 
 
-def output_file_path(path):
+def output_file_path(destination_path):
     global NEW_FILE_PATH
-    path = os.path.expandvars(path)
-    NEW_FILE_PATH = path + "\\report\\"
-    try:
-        if not os.path.exists(path):
-            raise IOError("Error: Given destination output path not found")
-        if not os.path.exists(NEW_FILE_PATH):
-            os.makedirs(NEW_FILE_PATH)
-    except IOError as error:
-        print(error)
-        exit()
-
+    NEW_FILE_PATH = utils.get_output_file_path(destination_path)
 
 
 def extract_images(output_path, small_pic_url, large_pic_url, contact_id, filetype):

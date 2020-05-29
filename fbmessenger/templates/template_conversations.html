@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="js/bootstrap.js">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 	<title>Conversations</title>
 </head>
@@ -8,17 +11,27 @@
 	<header>
 		<button id="csv" type="button">Export to CSV</button>
 	</header>
-	<table>
-		<thead>
-			<tr>
-				<!-- TODO Fill header text -->
-				<th>XXX</th>
-				<th>XXX</th>
-				<th>XXX</th>
-			</tr>
-		</thead>
-		<tbody></tbody>
-	</table>
+	<div class="container-fluid">
+		<div class="row" style="height: 700px;">
+			<div class="col-xl-4">
+				<table>
+					<thead>
+						<tr>
+							<!-- TODO Fill header text -->
+							<th>XXX</th>
+							<th>XXX</th>
+							<th>XXX</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+			<div class="col-xl-8">
+				<iframe  name="targetframemessages" allowTransparency="true" scrolling="yes" frameborder="0" style="width:100%; height: 700px;" ></iframe>
+				</iframe>
+			</div>
+		</div>
+	</div>
 	<script src="js/axios.js"></script>
 	<script src="js/csv.js"></script>
 	<script src="js/download_buttons.js"></script>

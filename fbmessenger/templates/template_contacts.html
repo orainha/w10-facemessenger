@@ -1,30 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="js/bootstrap.js">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 	<title>Contacts</title>
 </head>
 <body>
 	<header>
-		<!-- XXX <button id="show_hide_contact_images" type="button">Show Images</button> -->
-		<button id="csv" type="button">Export to CSV</button>
+		<div class=row>
+			<div class="col-md-11">
+			</div>
+			<div class="col-md-1">
+				<button id="csv" type="button">Export to CSV</button>
+			</div>
+		</div>
 	</header>
-	<table>
-		<thead>
-			<tr>
-				<th>Id</th>
-				<th>Photo</th>
-				<th>Name</th>
-				<th>Email</th>
-				<th>Phone</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
-	<!-- XXX <script src="js/show_hide_contact_images.js"></script> -->
-	<script src="js/axios.js"></script>
-	<script src="js/csv.js"></script>
-	<script src="js/download_buttons.js"></script>
-</body>
-</html>
+	<div class="container-fluid">
+		<div class="table">
+			<table class="table table-striped table-hover">
+				<thead>
+					<tr>
+						<th scope="col">Id</th>
+						<th scope="col">Photo</th>
+						<th scope="col">Name</th>
+						<th scope="col">Email</th>
+						<th scope="col">Phone</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+		<div class="htmls">
+
+		</div>
+	</div>
+		<!-- XXX <script src="js/show_hide_contact_images.js"></script> -->
+		<script src="js/axios.js"></script>
+		<script src="js/csv.js"></script>
+		<script src="js/download_buttons.js"></script>
+	</body>
+	</html>
