@@ -555,7 +555,7 @@ def input_file_path(path):
             raise IOError("Error: File not found on given path")
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 def output_file_path(path):
@@ -573,7 +573,7 @@ def output_file_path(path):
             os.makedirs(MESSAGES_PATH)
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 def extract_message_file(path, url, filename, filetype, msg_thread_key):

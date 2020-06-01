@@ -165,7 +165,7 @@ def input_file_path(path):
             raise IOError("Error: File not found on given path")
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 def output_file_path(path):
@@ -179,7 +179,7 @@ def output_file_path(path):
             os.makedirs(NEW_FILE_PATH)
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 
