@@ -7,16 +7,18 @@ import core.images
 import utils.files as utils
 import webbrowser
 
+
 # XXX (ricardoapl) Apply PEP8
 def parse_cmdline():
-    prog = 'fbmessenger'
-    description = 'Facebook Messenger (Beta) forensic artifacts extractor'
-    parser = argparse.ArgumentParser(prog=prog, description=description)
+    description = 'Windows 10 Messenger (Beta) forensic analysis tool'
+    parser = argparse.ArgumentParser(description=description)
     required_group = parser.add_argument_group('required arguments')
     required_group.add_argument('--input', required=True, help='set path to user directory')
     parser.add_argument('--output', default=r'%USERPROFILE%\Desktop', help='set output directory for report (defaults to Desktop)')
     parser.add_argument('--format', choices=['html', 'csv'], default='html', help='choose report format (defaults to "html")')
     parser.add_argument('--delimiter', choices=[',', '»', '«'], default=',', help='specify csv report delimiter (defaults to ",")')
+    # TODO (ricardoapl) Add argument for downloads
+    # TODO (orainha) Need to write better 'help'
     parser.add_argument('--depth', choices=['fast', 'complete'], default='fast', help='fast: no images, no internet required; complete: with images, internet required, slower')
     args = parser.parse_args()
     return args

@@ -790,7 +790,7 @@ def output_file_path(destination_path):
             os.makedirs(MESSAGES_PATH)
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 def extract_message_file(path, url, filename, filetype, msg_thread_key):

@@ -210,7 +210,7 @@ def output_file_path(path):
             os.makedirs(IMAGES_PATH)
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
 
 
 

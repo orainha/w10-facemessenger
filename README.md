@@ -1,8 +1,6 @@
 # W10-FaceMessenger
 
-## Description
-
-W10-FaceMessenger is a set of scripts bundled together to extract the most significant artifacts produced by the usage of the Windows Store application Messenger (Beta) by Facebook Inc.
+W10-FaceMessenger is a forensic analysis tool designed to extract the most significant artifacts produced by the usage of the Windows Store application Messenger (Beta) by Facebook Inc.
 
 As of now, W10-FaceMessenger is capable of extracting the following content:
 - Contacts
@@ -33,18 +31,8 @@ This software is distributed under the MIT License.
 
 Furthermore, it makes use of:
 
-- Axios (MIT License)
-    - Copyright 2014-2020 Matt Zabriskie
-
-- BeautifulSoup (MIT License)
-    - Copyright 2004-2019 Leonard Richardson
-
-- Bootstrap (MIT License)
-    - Copyright 2011-2020 Twitter, Inc.
-    - Copyright 2011-2020 The Bootstrap Authors
-
-- Hindsight (Apache License Version 2.0)
-    - Copyright 2015 Ryan Benson
-
-- Requests (Apache License Version 2.0)
-    - Copyright 2019 Kenneth Reitz
+- [Axios](https://github.com/axios/axios) (MIT License)
+- [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) (MIT License)
+- [Bootstrap](https://getbootstrap.com/) (MIT License)
+- [Hindsight](https://github.com/obsidianforensics/hindsight) (Apache License Version 2.0)
+- [Requests](https://requests.readthedocs.io/en/master/) (Apache License Version 2.0)
