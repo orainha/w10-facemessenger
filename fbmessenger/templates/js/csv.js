@@ -62,7 +62,8 @@
     }
 
     var exportCSV = function () {
-        var table_rows = document.getElementsByTagName("tr")
+        var tables = document.getElementsByTagName("table")
+        var table_rows = tables[0].getElementsByTagName("tr")
         var csv_data = []
         var fieldnames = []
         var row = {}
@@ -72,7 +73,7 @@
                 // we are on first row: <th>
                 var cells = table_rows[i].cells
                 for (var j = 0; j < cells.length; j++) {
-                    fieldnames[j] = cells[j].innerText
+                    fieldnames[j] = cells[j].innerText.trim()
                 }
                 continue;
             } else {
@@ -94,8 +95,14 @@
                             //console.log("image: " + img_url)
                         }
                         row[fieldnames[j]] = img_url
-                    } else {
-                        row[fieldnames[j]] = cells[j].innerText
+                    }
+                    else if((start_img_index = cells[j].innerHTML.search("<button")) > 0){
+                        var file_url;
+                        file_url = cells[j].firstElementChild.attributes.value.value;
+                        row[fieldnames[j]] = file_url
+                    }
+                    else {
+                        row[fieldnames[j]] = cells[j].innerText.trim()
                     }
                 }
             }

@@ -1,0 +1,80 @@
+
+/* header */
+
+#imgLogo {
+    margin-top: 20px;
+    margin-left: 50px;
+  }
+
+#imgSuspect{
+    width: 80px;
+    margin-left: -20px; 
+    margin-top: -15px; 
+    border-radius: 50%;
+}
+
+#csv{
+    cursor: pointer;
+}
+
+#navbar{
+    border-radius: 50px;
+}
+
+/* body */
+
+body{
+    overflow-x:hidden;
+}
+  
+/* thead{
+    display: none;
+} */
+
+tbody{
+    margin-top: -30px;
+}
+
+#divContent{
+    height: 500px;
+}
+
+#divFrame{
+    height: 500px
+}
+
+#iframe{
+    width:100%; 
+    height: 700px;
+}
+
+#imgContact{
+    width: 50px;
+    border-radius: 50%;
+}
+
+#tdContactName{
+    margin-top: 10px;  
+}
+
+#tableMessages{
+    display: none;
+}
+
+#tableContacts thead{
+    display: none;
+}
+
+#divMessageContentSuspect{
+    border-radius: 50px 50px 0px 50px;
+    padding: 5px;
+}
+
+#divMessageContentVictim{
+    border-radius: 50px 50px 50px 0px;
+    padding: 5px;
+}
+
+
+
+/* footer */

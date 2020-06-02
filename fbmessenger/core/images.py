@@ -107,7 +107,7 @@ def append_html(data, html, depth):
             # Create button
             button_tag = html.new_tag('button')
             button_tag['id'] = filename + filetype
-            button_tag['class'] = 'btn_download_images_file'
+            button_tag['class'] = 'btn_download_images_file btn btn-outline-dark my-2 my-sm-0'
             button_tag['value'] = datum['url']
             button_tag.append('Download Image')
             image_tag.append(button_tag)

@@ -1,21 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<link rel="stylesheet" href="../css/bootstrap.css">
+	<link rel="stylesheet" href="../css/main.css">
+	<link rel="stylesheet" href="../js/bootstrap.js">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 	<title>Messages</title>
 </head>
 <body>
 	<header>
-		<button id="csv" type="button">Export to CSV</button>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-xl">
+				</div>
+				<div id="victimPhoto" class="col-xl text-center">
+				</div>
+				<div class="col-xl">
+				</div>
+			</div>
+			<div class="row pt-3">
+				<div id="victimName" class="col text-center">
+				</div>
+			</div>
+	   </div>
 	</header>
-	<table>
-		<tr>
-			<th>DateTime</th>
-			<th>Sender</th>
-			<th>Message</th>
-			<th>Reaction</th>
-			<th>Reaction Sender</th>
-		</tr>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="container-fluid">
+				<nav id="navbar" class="navbar navbar-expand-xl navbar-light bg-light">
+					<ul class="navbar-nav ml-auto">
+						<li class="nav-item">
+						<a id="csv" class="navbar-brand">Export to csv</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+	</div>
+	<!-- <div class="container-fluid">
+		<div class="row">
+			<div class="row w-100">
+				<div id="divSuspect" class="col">
+
+				</div>
+			</div>
+			<div class="row w-100">
+				<div id="divVictim" class="col">
+
+				</div>
+			</div>
+		</div>
+	</div> -->
+	<table id="tableMessages" style="display: visible;">
+		<thead>
+			<tr>
+				<th>DateTime</th>
+				<th>Sender</th>
+				<th>Message</th>
+				<th>Reaction</th>
+				<th>Reaction Sender</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
 	</table>
 	<script src="../js/axios.js"></script>
 	<script src="../js/csv.js"></script>

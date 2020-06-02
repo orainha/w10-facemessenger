@@ -76,7 +76,7 @@ def report_html(database_path, template_path, depth):
                 td_download_photo = html_doc_new_file.new_tag('td')
                 button_tag = html_doc_new_file.new_tag('button')
                 button_tag['id'] = str(contact_id) + filetype
-                button_tag['class'] = 'btn_download_contact_image'
+                button_tag['class'] = 'btn_download_contact_image btn btn-outline-dark my-2 my-sm-0'
                 button_tag['value'] = contact_large_pic
                 button_tag.append('Download Image')
                 td_download_photo.append(button_tag)
@@ -111,7 +111,7 @@ def report_html(database_path, template_path, depth):
             tr_tag.append(td_name)
             tr_tag.append(td_email)
             tr_tag.append(td_phone)
-            html_doc_new_file.table.append(tr_tag)
+            html_doc_new_file.table.tbody.append(tr_tag)
         except IOError as error:
             print(error)
             break

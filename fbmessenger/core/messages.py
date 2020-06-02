@@ -4,6 +4,7 @@ import shutil
 import csv
 import json
 import sqlite3
+import copy
 from pathlib import Path
 # TODO: (orainha) Remove import requests
 import requests
@@ -20,9 +21,11 @@ CONVERSATIONS_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\t
 MESSAGES_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_messages.html')
 NEW_FILE_PATH = ''
 MESSAGES_PATH = ''
+OUTPUT_PATH = ''
 PATH = ''
 DB_PATH = ''
-auth_id = 0
+MSG_FILES_FOLDER_NAME = ''
+
 CONVERSATIONS_QUERRY = """
     SELECT
         c.profile_picture_url,
@@ -34,6 +37,7 @@ CONVERSATIONS_QUERRY = """
     FROM participants as p 
     JOIN contacts as c ON c.id = p.contact_id
 """
+
 MESSAGES_PER_CONVERSATION_QUERRY = """
     SELECT
         m.thread_key,
@@ -51,7 +55,8 @@ MESSAGES_PER_CONVERSATION_QUERRY = """
         a.filename,
         r.reaction,
         (SELECT name FROM contacts WHERE id = r.actor_id),
-        a.playable_duration_ms/1000
+        a.playable_duration_ms/1000,
+        m.message_id
     FROM messages as m 
     LEFT JOIN attachments AS a ON m.message_id = a.message_id
     JOIN user_contact_info as u ON m.sender_id = u.contact_id
@@ -68,23 +73,81 @@ class MessagesCollector():
     def __init__(self):
         pass
 
+def header(html, thread_key, depth):
 
-# XXX (ricardoapl) Move method to other module (utils?)
-# XXX (ricardoapl) Maybe create a single method for all assets (js, css, images)
-# XXX (ricardoapl) Fix this non-pythonic mess!
-def create_js_files():
-    try:
-        if not os.path.exists(NEW_FILE_PATH + "\js"):
-            os.makedirs(NEW_FILE_PATH + "\js")
-        js_path = os.path.join(os.path.dirname(__file__), r'..\templates\js\\')
-        js_files = os.listdir(js_path)
-        for filename in js_files:
-            shutil.copy2(os.path.join(js_path, filename), NEW_FILE_PATH + "\js")
-    except OSError as error:
-        print(error)
+    ONE_PARTICIPANT_QUERRY = """
+        SELECT
+            c.profile_picture_url,
+            c.name,
+            c.profile_picture_large_url, 
+            p.thread_key,
+            p.contact_id,
+            p.nickname
+        FROM participants as p 
+        JOIN contacts as c ON c.id = p.contact_id
+        WHERE p.thread_key = """ + str(thread_key)
+
+    # Connect to database
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(ONE_PARTICIPANT_QUERRY)
+
+    victim_photo = html.header.find(
+    "div", attrs={"id": "victimPhoto"})
+    victim_name = html.header.find(
+    "div", attrs={"id": "victimName"})
+
+    div_row_photo = html.new_tag('div')
+    div_row_photo["class"] = "row"
+    
+    div_row_name = html.new_tag('div')
+    div_row_name["class"] = "row"
+
+    suspect_id = utils.get_suspect_id(PATH)
+
+    for row in c:
+        pic_url = str(row[0])
+        name = str(row[1])
+        large_pic_url = str(row[2])
+        contact_id = str (row[4])
+
+        if contact_id != suspect_id:
+            filetype = utils.get_filetype(pic_url)
+            div_col_photo = html.new_tag('div')
+            div_col_photo["class"] = "col"
+            if (depth == "fast"):
+                button_tag = html.new_tag('button')
+                button_tag['id'] = str(contact_id) + filetype
+                button_tag['class'] = 'btn_download_conversation_contact_image btn btn-outline-dark my-2 my-sm-0 mt-2'
+                button_tag['value'] = large_pic_url
+                button_tag.append('Download Image')
+                div_col_photo.append(button_tag)
+            elif (depth == "complete"):
+                href_tag = html.new_tag('a')
+                href_tag['href'] = f'..\conversations\images\large\{contact_id}' + filetype
+                img_tag = html.new_tag('img')
+                img_tag['src'] = f'..\conversations\images\small\{contact_id}' + filetype
+                img_tag['id'] = 'imgContact'
+                href_tag.append(img_tag)
+                div_col_photo.append(href_tag)
+        
+            div_row_photo.append(div_col_photo)
+            
+            # Fill name
+            p_tag = html.new_tag('p')
+            p_tag["class"] = "col"
+            p_tag.append(name)
+            
+            div_row_name.append(p_tag)            
+
+    victim_photo.append(div_row_photo)
+    victim_name.append(div_row_name)
+
+    return html
 
 
 def report_html_messages(template_path, depth):
+
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -93,15 +156,13 @@ def report_html_messages(template_path, depth):
     thread_key = 0
     new_thread_key = 1
     file_write = ""
-    counter = 1
-    # Delete msgs file path if exists
-    # XXX (ricardoapl) This method is not responsible for deleting old files
-    if os.path.exists(MESSAGES_PATH):
-        shutil.rmtree(MESSAGES_PATH)
+    last_sender = 0
+    last_message_id = 0
     for row in cursor:
         # Query fields
         new_thread_key = row[0]
         datetime = str(row[1])
+        sender_id = str(row[3])
         sender_name = str(row[4])
         message = str(row[5])
         attachment_preview_url = str(row[6])
@@ -114,10 +175,13 @@ def report_html_messages(template_path, depth):
         reaction = str(row[13])
         reaction_sender = str(row[14])
         attachment_duration = str(row[15])
+        message_id = str(row[16])
 
         # BeautifulSoup variables
         html_doc_new_file = ""
         td_message = ""
+
+        has_header = []
 
         # If is the first conversation file...
         if thread_key == 0:
@@ -131,6 +195,10 @@ def report_html_messages(template_path, depth):
                 html_doc_new_file = BeautifulSoup(
                     template_file, features='html.parser')
                 new_file = open(new_file_path, 'w', encoding='utf-8')
+                # Build header
+                if thread_key not in has_header:
+                    html_doc_new_file = header(html_doc_new_file,thread_key,depth)
+                    has_header.append(thread_key)
                 # Close file
                 template_file.close()
             except IOError as error:
@@ -149,14 +217,13 @@ def report_html_messages(template_path, depth):
         # If is a new conversation..
         elif thread_key != new_thread_key:
             thread_key = new_thread_key
-            counter = counter + 1
             new_file_path = MESSAGES_PATH + str(thread_key)+".html"
             # Avoid file overwrite, check if file exists
             if Path(new_file_path).is_file():
                 try:
                     f = open(new_file_path, 'r', encoding='utf-8')
                     html_doc_new_file = BeautifulSoup(
-                        f, features='html.parser')
+                        f, features='html.parser')  
                     f.close()
                 except IOError as error:
                     print(error)
@@ -166,7 +233,10 @@ def report_html_messages(template_path, depth):
                     template_file = open(template_path, 'r', encoding='utf-8')
                     html_doc_new_file = BeautifulSoup(
                         template_file, features='html.parser')
-                    template_file.close()
+                    # build header
+                    if thread_key not in has_header:
+                        html_doc_new_file = header(html_doc_new_file,thread_key,depth)
+                        has_header.append(thread_key)
                 except IOError as error:
                     print(error)
             # Open according file
@@ -208,9 +278,9 @@ def report_html_messages(template_path, depth):
                         td_message = html_doc_new_file.new_tag('td')
                         td_message.append(button_tag)
                     elif (depth == "complete"):
-                        extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                        extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                         img_tag = html_doc_new_file.new_tag('img')
-                        img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}{filetype}'
+                        img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                         td_message = html_doc_new_file.new_tag('td')
                         td_message.append(img_tag)
                 # TODO (orainha) Continuar esta parte, verificar também nos outros casos de threadkey
@@ -226,9 +296,9 @@ def report_html_messages(template_path, depth):
                         td_message = html_doc_new_file.new_tag('td')
                         td_message.append(button_tag)
                     elif (depth == "complete"):
-                        extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
+                        extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
                         href_tag = html_doc_new_file.new_tag('a')
-                        href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}'
+                        href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
                         href_tag.append(
                             "Audio - " + attachment_title + " - " + attachment_subtitle)
                         td_message = html_doc_new_file.new_tag('td')
@@ -244,11 +314,11 @@ def report_html_messages(template_path, depth):
                         td_message.append(button_tag)
                     elif (depth == "complete"):
                         filetype = utils.get_filetype(attachment_preview_url)
-                        extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
-                        extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename, '', str(thread_key))
+                        extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                        extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, '', str(thread_key))
                         img_tag = html_doc_new_file.new_tag('img')
                         # Need to add image filetype on this case, filename ends like '.mp4' (not suitable to show an image)
-                        img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}{filetype}'
+                        img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                         duration = "["+attachment_duration + \
                             "s]" if attachment_duration != "None" else ""
                         title = " - " + attachment_title if attachment_title != "None" else ""
@@ -256,7 +326,7 @@ def report_html_messages(template_path, depth):
                         img_tag.append("Video " + duration + title + subtitle)
                         href_tag = html_doc_new_file.new_tag('a')
                         # Video filename already has filetype
-                        href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}'
+                        href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
                         href_tag.append(img_tag)
                         td_message = html_doc_new_file.new_tag('td')
                         td_message.append(href_tag)
@@ -288,18 +358,18 @@ def report_html_messages(template_path, depth):
                             filetype = utils.get_filetype(attachment_playable_url)
 
                         if (attachment_preview_url != 'None'):
-                            extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                            extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                             img_tag = html_doc_new_file.new_tag('img')
-                            img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}{filetype}'
+                            img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                             td_message = html_doc_new_file.new_tag('td')
                             td_message.append(img_tag)
 
                         elif (attachment_playable_url != 'None'):
-                            extract_message_file(MESSAGES_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
+                            extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
                             p_tag = html_doc_new_file.new_tag('p')
                             p_tag.append(attachment_filename)
                             href_tag = html_doc_new_file.new_tag('a')
-                            href_tag['href'] = f'files\{str(thread_key)}\{attachment_filename}' + '.' + filetype
+                            href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}' + '.' + filetype
                             href_tag.append(p_tag)
                             td_message = html_doc_new_file.new_tag('td')
                             td_message.append(href_tag)
@@ -322,15 +392,179 @@ def report_html_messages(template_path, depth):
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
                 elif (depth == "complete"):
                     filetype = utils.get_filetype(attachment_playable_url)
-                    extract_message_file(MESSAGES_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                    extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                     img_tag = html_doc_new_file.new_tag('img')
-                    img_tag['src'] = f'files\{str(thread_key)}\{attachment_filename}{filetype}'
+                    img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(img_tag)
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
             else:
                 td_message = html_doc_new_file.new_tag('td')
                 td_message.append(message)
+
+
+            #New style
+
+            suspect_contact_id = utils.get_suspect_id(PATH)
+
+            # suspect align-right    
+            suspect_element_style = "col text-right"
+            suspect_element_style_color = "col text-right bg-dark text-white"
+            # suspect_element_style_border = "border-radius: 50px 50px 0px 50px;"
+
+            # victim align-left
+            victim_element_style = "col text-left"
+            victim_element_style_color = "col text-left bg-secondary text-white"
+            # victim_element_style_border = "border-radius: 50px 50px 50px 0px;"
+
+            div_row_sender = html_doc_new_file.new_tag('div')
+            div_row_sender["class"] = "row"
+            small_sender = html_doc_new_file.new_tag('small')
+            if(suspect_contact_id == sender_id):
+                small_sender["class"] = suspect_element_style
+            else:
+                small_sender["class"] = victim_element_style
+            small_sender.append(sender_name)
+            div_empty = html_doc_new_file.new_tag('div')
+            div_empty["class"] = "col"
+            if(suspect_contact_id == sender_id):
+                div_row_sender.append(div_empty)
+                div_row_sender.append(small_sender)
+            else:
+                div_row_sender.append(small_sender)
+                div_row_sender.append(div_empty)
+
+            div_row_message = html_doc_new_file.new_tag('div')
+            div_row_message["class"] = "row"
+            div_message = html_doc_new_file.new_tag('div')
+            div_message_content = html_doc_new_file.new_tag('div')
+            message = html_doc_new_file.new_tag('td')
+            # Must copy td_message to can use on both div and table
+            message = copy.copy(td_message)
+            if(suspect_contact_id == sender_id):
+                div_message_content["id"] = "divMessageContentSuspect"
+                div_message_content["class"] = suspect_element_style_color
+                # div_message_content["style"] = suspect_element_style_border
+            else:
+                div_message_content["id"] = "divMessageContentVictim"
+                div_message_content["class"] = victim_element_style_color
+                # div_message_content["style"] = victim_element_style_border
+            div_message_content.append(message)
+            div_message.append(div_message_content)
+            div_empty = html_doc_new_file.new_tag('div')
+            div_empty["class"] = "col"
+            if(suspect_contact_id == sender_id):
+                div_row_message.append(div_empty)
+                div_row_message.append(div_message)
+            else:
+                div_row_message.append(div_message)
+                div_row_message.append(div_empty)
+
+            div_row_datetime = html_doc_new_file.new_tag('div')
+            div_row_datetime["class"] = "row"
+            div_datetime = html_doc_new_file.new_tag('div')
+            if(suspect_contact_id == sender_id):
+                div_datetime["class"] = suspect_element_style
+            else:
+                div_datetime["class"] = victim_element_style
+            small_datetime = html_doc_new_file.new_tag('small')
+            cite_datetime = html_doc_new_file.new_tag('cite')
+            cite_datetime.append(datetime)
+            small_datetime.append(cite_datetime)
+            div_datetime.append(small_datetime)
+            div_empty = html_doc_new_file.new_tag('div')
+            div_empty["class"] = "col"
+            if(suspect_contact_id == sender_id):
+                div_row_datetime.append(div_empty)
+                div_row_datetime.append(div_datetime)
+            else:
+                div_row_datetime.append(div_datetime)
+                div_row_datetime.append(div_empty)
+
+            div_row_reaction = html_doc_new_file.new_tag('div')
+            div_row_reaction["class"] = "row"
+            div_reaction = html_doc_new_file.new_tag('div')
+            if(suspect_contact_id == sender_id):
+                div_reaction["class"] = suspect_element_style
+            else:
+                div_reaction["class"] = victim_element_style
+            cite_reaction_sender = html_doc_new_file.new_tag('cite')
+            cite_reaction_sender.append(reaction_sender)
+            div_reaction.append(reaction + " ")
+            div_reaction.append(cite_reaction_sender)
+            div_empty = html_doc_new_file.new_tag('div')
+            div_empty["class"] = "col"
+            if(suspect_contact_id == sender_id):
+                div_row_reaction.append(div_empty)
+                div_row_reaction.append(div_reaction)
+            else:
+                div_row_reaction.append(div_reaction)
+                div_row_reaction.append(div_empty)
+
+            div_container_fluid = html_doc_new_file.new_tag('div')
+            if(suspect_contact_id == sender_id):
+                div_container_fluid["class"] = "container-fluid mr-5"
+            else:
+                div_container_fluid["class"] = "container-fluid ml-5"
+            div_container_fluid_row = html_doc_new_file.new_tag('div')
+            div_container_fluid_row["class"] = "row"
+            div_row_w100_suspect = html_doc_new_file.new_tag('div')
+            div_row_w100_suspect["class"] = "row w-100"
+            div_suspect = html_doc_new_file.new_tag('div')
+            div_suspect["id"] = "divSuspect"
+            div_suspect["class"] = "col mt-3"
+            div_row_w100_victim = html_doc_new_file.new_tag('div')
+            div_row_w100_victim["class"] = "row w-100"
+            div_victim = html_doc_new_file.new_tag('div')
+            div_victim["id"] = "divVictim"
+            div_victim["class"] = "col mt-3"
+            
+            
+            if (suspect_contact_id == sender_id):
+                #Avoid all message content repeat just because multiple reactions
+                if last_message_id != message_id:
+                    # Avoid sender name repeat
+                    if last_sender != sender_id:
+                        div_suspect.append(div_row_sender)
+                    div_suspect.append(div_row_message)
+                    div_suspect.append(div_row_datetime)
+                    if reaction != 'None':
+                        div_suspect.append(div_row_reaction)
+                        # div_suspect.append(div_row_reaction_sender)
+                else:
+                    if reaction != 'None':
+                        div_suspect.append(div_row_reaction)
+                        # div_suspect.append(div_row_reaction_sender)
+                div_row_w100_suspect.append(div_suspect)
+                div_container_fluid_row.append(div_row_w100_suspect)
+                last_sender = sender_id
+                last_message_id = message_id
+                
+            else:
+                #Avoid all message content repeat just because multiple reactions
+                if last_message_id != message_id:
+                    # Avoid sender name repeat
+                    if last_sender != sender_id:
+                        div_victim.append(div_row_sender)
+                    div_victim.append(div_row_message)
+                    div_victim.append(div_row_datetime)
+                    if reaction != 'None':
+                        div_victim.append(div_row_reaction)
+                        # div_victim.append(div_row_reaction_sender)
+                else:
+                    if reaction != 'None':
+                        div_victim.append(div_row_reaction)
+                        # div_victim.append(div_row_reaction_sender)
+                div_row_w100_victim.append(div_victim)
+                div_container_fluid_row.append(div_row_w100_victim)
+                last_sender = sender_id
+                last_message_id = message_id
+
+            div_container_fluid.append(div_container_fluid_row)
+            
+            html_doc_new_file.table.insert_before(div_container_fluid)
+
+            #Old Style
 
             tr_tag = html_doc_new_file.new_tag('tr')
             td_datetime = html_doc_new_file.new_tag('td')
@@ -346,15 +580,16 @@ def report_html_messages(template_path, depth):
             tr_tag.append(td_message)
             tr_tag.append(td_reaction)
             tr_tag.append(td_reaction_sender)
-            html_doc_new_file.table.append(tr_tag)
+            html_doc_new_file.table.tbody.append(tr_tag)
+
             new_file.seek(0)
             new_file.write(html_doc_new_file.prettify())
             new_file.truncate()
 
-            has_header = html_doc_new_file.find_all(
-                "p", attrs={"id": "filename"})
-            if (not has_header):
-                fill_header(DB_PATH, new_file_path)
+            # has_header = html_doc_new_file.find_all(
+            #     "p", attrs={"id": "filename"})
+            # if (not has_header):
+            #     fill_header(DB_PATH, new_file_path)
 
             # Close file
             new_file.close()
@@ -375,9 +610,9 @@ def report_html_conversations(template_path, depth):
                     'w', encoding='utf-8')
 
     # Variable initialization
-    counter = 1
     thread_key = 0
     new_thread_key = 1
+    suspect_contact_id = utils.get_suspect_id(PATH)
     for row in c:
         # Query fields
         participant_pic = str(row[0])
@@ -388,51 +623,51 @@ def report_html_conversations(template_path, depth):
         # If is the first conversation file...
         if thread_key == 0:
             thread_key = new_thread_key
-
             tr_tag = html_doc_new_file.new_tag('tr')
-            td_empty = html_doc_new_file.new_tag('td')
             td_conversation = html_doc_new_file.new_tag('td')
-            # XXX (ricardoapl) Use thread_key instead of counter (that's how we identify the HTML file later on)
-            td_conversation.append(f"Conversation: {str(counter)}")
-            tr_tag.append(td_empty)
+            p_tag = html_doc_new_file.new_tag('p')
+            p_tag["class"] = "mt-4"
+            strong_tag = html_doc_new_file.new_tag('strong')
+            strong_tag.append(f"Conversation {str(thread_key)}")
+            p_tag.append(strong_tag)
+            td_conversation.append(p_tag)
             tr_tag.append(td_conversation)
             html_doc_new_file.table.append(tr_tag)
 
         # If is the same conversation as previous..
         elif thread_key == new_thread_key:
-            suspect_contact_id = auth_id
             if (str(participant_contact_id) != str(suspect_contact_id)):
                 pass
             else:
                 continue
+
         # If is a new conversation..
         elif thread_key != new_thread_key:
-            suspect_contact_id = auth_id
             if (str(participant_contact_id) != str(suspect_contact_id)):
                 thread_key = new_thread_key
-                counter = counter + 1
-
                 tr_tag = html_doc_new_file.new_tag('tr')
-                td_empty = html_doc_new_file.new_tag('td')
                 td_conversation = html_doc_new_file.new_tag('td')
-                td_conversation.append(f"Conversation: {str(counter)}")
-                tr_tag.append(td_empty)
+                p_tag = html_doc_new_file.new_tag('p')
+                p_tag["class"] = "mt-5"
+                strong_tag = html_doc_new_file.new_tag('strong')
+                strong_tag.append(f"Conversation {str(thread_key)}")
+                p_tag.append(strong_tag)
+                td_conversation.append(p_tag)
                 tr_tag.append(td_conversation)
                 html_doc_new_file.table.append(tr_tag)
             else:
                 continue
 
         tr_tag_data = html_doc_new_file.new_tag('tr')
+        tr_tag_data["class"] = "row"
         # td 1
-        td_empty2 = html_doc_new_file.new_tag('td')
-        # td 2
-        # Get file type
         filetype = utils.get_filetype(participant_pic)
         td_photo = html_doc_new_file.new_tag('td')
+        td_photo["class"] = "col-md-2 text-right pr-1"
         if (depth == "fast"):
             button_tag = html_doc_new_file.new_tag('button')
             button_tag['id'] = str(participant_contact_id) + filetype
-            button_tag['class'] = 'btn_download_conversation_contact_image'
+            button_tag['class'] = 'btn_download_conversation_contact_image btn btn-outline-dark my-2 my-sm-0'
             button_tag['value'] = participant_large_pic
             button_tag.append('Download Image')
             td_photo.append(button_tag)
@@ -442,16 +677,18 @@ def report_html_conversations(template_path, depth):
             href_tag['href'] = f'conversations\images\large\{participant_contact_id}' + filetype
             img_tag = html_doc_new_file.new_tag('img')
             img_tag['src'] = f'conversations\images\small\{participant_contact_id}' + filetype
+            img_tag['id'] = 'imgContact'
             href_tag.append(img_tag)
             td_photo.append(href_tag)
-        # td 3
+        # td 2
         td_msgs = html_doc_new_file.new_tag('td')
+        td_msgs["class"] = "col-md-10"
+        td_msgs["id"] = "tdContactName"
         href_msgs_tag = html_doc_new_file.new_tag('a')
         href_msgs_tag["href"] = f'messages\{str(thread_key)}.html'
         href_msgs_tag["target"] = 'targetframemessages'
         href_msgs_tag.append(str(participant_name))
         td_msgs.append(href_msgs_tag)
-        tr_tag_data.append(td_empty2)
         tr_tag_data.append(td_photo)
         tr_tag_data.append(td_msgs)
         html_doc_new_file.table.append(tr_tag_data)
@@ -537,6 +774,7 @@ def report_csv(delim):
 def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global DB_PATH
+    global PATH
     PATH = utils.get_input_file_path(user_path)
     DB_PATH = utils.get_db_path(PATH)
 
@@ -546,6 +784,8 @@ def output_file_path(destination_path):
     NEW_FILE_PATH = utils.get_output_file_path(destination_path)
     MESSAGES_PATH = NEW_FILE_PATH + "messages\\"
     try:
+        if os.path.exists(MESSAGES_PATH):
+            shutil.rmtree(MESSAGES_PATH)
         if not os.path.exists(MESSAGES_PATH):
             os.makedirs(MESSAGES_PATH)
     except IOError as error:
@@ -554,18 +794,21 @@ def output_file_path(destination_path):
 
 
 def extract_message_file(path, url, filename, filetype, msg_thread_key):
-    PATH = os.path.expandvars(path)
-    IMAGES_PATH = PATH + f'\\files\{msg_thread_key}'
+    global OUTPUT_PATH
+    global MSG_FILES_FOLDER_NAME
+    OUTPUT_PATH = os.path.expandvars(path)
+    MSG_FILES_FOLDER_NAME = 'message-files'
+    IMAGES_PATH = OUTPUT_PATH + f'\\{MSG_FILES_FOLDER_NAME}\{msg_thread_key}'
     utils.extract(path, IMAGES_PATH, url, filename, filetype)
 
 
 def extract_images(output_path, small_pic_url, large_pic_url, filetype, filename):
-    global PATH
+    global OUTPUT_PATH
     FILENAME = 'conversations.html'
-    PATH = os.path.expandvars(output_path)
-    SMALL_IMAGES_PATH = PATH + f'\conversations\images\small'
-    LARGE_IMAGES_PATH = PATH + f'\conversations\images\large'
-    FILENAME = PATH + f'\\{FILENAME}'
+    OUTPUT_PATH = os.path.expandvars(output_path)
+    SMALL_IMAGES_PATH = OUTPUT_PATH + f'\conversations\images\small'
+    LARGE_IMAGES_PATH = OUTPUT_PATH + f'\conversations\images\large'
+    FILENAME = OUTPUT_PATH + f'\\{FILENAME}'
 
     utils.extract(output_path, SMALL_IMAGES_PATH, small_pic_url, filename, filetype)
     utils.extract(output_path, LARGE_IMAGES_PATH, large_pic_url, filename, filetype)

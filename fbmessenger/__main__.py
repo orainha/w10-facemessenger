@@ -4,7 +4,8 @@ import argparse
 import core.contacts
 import core.messages
 import core.images
-import core.downloads
+import utils.files as utils
+import webbrowser
 
 # XXX (ricardoapl) Apply PEP8
 def parse_cmdline():
@@ -16,8 +17,6 @@ def parse_cmdline():
     parser.add_argument('--output', default=r'%USERPROFILE%\Desktop', help='set output directory for report (defaults to Desktop)')
     parser.add_argument('--format', choices=['html', 'csv'], default='html', help='choose report format (defaults to "html")')
     parser.add_argument('--delimiter', choices=[',', '»', '«'], default=',', help='specify csv report delimiter (defaults to ",")')
-    # TODO (ricardoapl) Add argument for downloads
-    # TODO (ogiosvaldo) What? Hieeeeeeeer.. (Need to write better 'help')
     parser.add_argument('--depth', choices=['fast', 'complete'], default='fast', help='fast: no images, no internet required; complete: with images, internet required, slower')
     args = parser.parse_args()
     return args
@@ -31,14 +30,13 @@ def run(args):
     core.messages.output_file_path(args.output)
     core.images.input_file_path(args.input)
     core.images.output_file_path(args.output)
-
+    utils.create_web_files(args.output, args.input, args.depth)
+    
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
     core.images.extract_all(images_path)
     
     if args.format == 'html':
-        # XXX (ricardoapl) It's not core.messages responsibility to create such files!
-        core.messages.create_js_files()
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
         contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
@@ -54,6 +52,7 @@ def run(args):
         images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
         core.images.report_html(images_template, images_report, args.depth)
         # TODO (ricardoapl) Open HTML report (which one?)
+        # webbrowser.open_new_tab(args.output + r'\report\report.html')
 
     elif args.format == 'csv':
         delim = args.delimiter
