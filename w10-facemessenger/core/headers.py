@@ -55,6 +55,10 @@ def fill_index_header(html, input_file_path, depth):
     left_style_tag = "p"
     right_style_tag = "p"
 
+    file_title = "File"
+    hash_title = "Hash (SHA256)"
+    datetime_title = "Time (UTC)"
+
     div_hash = html.new_tag("div")
     div_hash["class"] = "col-xl-8 text-center mt-3"
     div_hash_row_1 = html.new_tag("div")
@@ -64,7 +68,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash_row_1_col_right = html.new_tag("div")
     div_hash_row_1_col_right["class"] = "col text-left"
     file_tag = html.new_tag(left_style_tag)
-    file_tag.append("Source file")
+    file_tag.append(file_title)
     small_file_tag = html.new_tag("small")
     small_file_tag.append(file_tag)
     div_hash_row_1_col_left.append(small_file_tag)
@@ -83,7 +87,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash_row_2_col_right = html.new_tag("div")
     div_hash_row_2_col_right["class"] = "col text-left"
     sha_tag = html.new_tag(left_style_tag)
-    sha_tag.append("Hash (SHA256)")
+    sha_tag.append(hash_title)
     small_sha_tag = html.new_tag("small")
     small_sha_tag.append(sha_tag)
     div_hash_row_2_col_left.append(small_sha_tag)
@@ -102,7 +106,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash_row_3_col_right = html.new_tag("div")
     div_hash_row_3_col_right["class"] = "col text-left"
     timestamp_tag = html.new_tag(left_style_tag)
-    timestamp_tag.append("Date Accessed")
+    timestamp_tag.append(datetime_title)
     small_timestamp_tag = html.new_tag("small")
     small_timestamp_tag.append(timestamp_tag)
     div_hash_row_3_col_left.append(small_timestamp_tag)
