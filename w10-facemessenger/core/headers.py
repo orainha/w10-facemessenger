@@ -50,7 +50,7 @@ def fill_index_header(html, input_file_path, depth):
     filename = db_path
     hashsum = sha256sum(db_path)
     timezone = datetime.timezone.utc
-    timestamp = datetime.datetime.now(timezone)
+    timestamp = datetime.datetime.now(timezone).ctime()
 
     left_style_tag = "p"
     right_style_tag = "p"
@@ -64,7 +64,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash_row_1_col_right = html.new_tag("div")
     div_hash_row_1_col_right["class"] = "col text-left"
     file_tag = html.new_tag(left_style_tag)
-    file_tag.append("File")
+    file_tag.append("Source file")
     small_file_tag = html.new_tag("small")
     small_file_tag.append(file_tag)
     div_hash_row_1_col_left.append(small_file_tag)
@@ -102,7 +102,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash_row_3_col_right = html.new_tag("div")
     div_hash_row_3_col_right["class"] = "col text-left"
     timestamp_tag = html.new_tag(left_style_tag)
-    timestamp_tag.append("Time (UTC)")
+    timestamp_tag.append("Date Accessed")
     small_timestamp_tag = html.new_tag("small")
     small_timestamp_tag.append(timestamp_tag)
     div_hash_row_3_col_left.append(small_timestamp_tag)
