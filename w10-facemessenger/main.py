@@ -32,13 +32,13 @@ def run(args):
     core.messages.output_file_path(args.output)
     core.images.input_file_path(args.input)
     core.images.output_file_path(args.output)
-    utils.create_web_files(args.output, args.input, args.depth)
     
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
     core.images.extract_all(images_path)
     
     if args.format == 'html':
+        utils.create_web_files(args.output, args.input, args.depth)
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
         contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
