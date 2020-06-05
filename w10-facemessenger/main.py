@@ -5,7 +5,6 @@ import core.contacts
 import core.messages
 import core.images
 import utils.files as utils
-import webbrowser
 
 
 # XXX (ricardoapl) Apply PEP8
@@ -32,7 +31,8 @@ def run(args):
     core.messages.output_file_path(args.output)
     core.images.input_file_path(args.input)
     core.images.output_file_path(args.output)
-    utils.create_web_files(args.output, args.input, args.depth)
+    utils.create_web_files(args.output)
+    utils.create_index_html(args.output, args.input, args.depth)
     
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
@@ -53,8 +53,6 @@ def run(args):
         images_template = core.images.TEMPLATE_FILENAME
         images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
         core.images.report_html(images_template, images_report, args.depth)
-        # TODO (ricardoapl) Open HTML report (which one?)
-        # webbrowser.open_new_tab(args.output + r'\report\report.html')
 
     elif args.format == 'csv':
         delim = args.delimiter

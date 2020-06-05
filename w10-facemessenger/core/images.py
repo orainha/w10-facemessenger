@@ -139,16 +139,15 @@ def report_csv(delim):
                 content = read_jsonl(entry.name)
                 image_content = filter_image_content(content)
                 append_rows(image_content, rows)
-    # XXX (ricardoapl) Rename columns according to HTML report
     columns = [
-        'profile',
-        'location',
-        'datetime',
-        'url'
+        'Source Directory',
+        'File[Offset]',
+        'Date Accessed',
+        'Url'
     ]
     # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
     filename = NEW_FILE_PATH + 'report_images.csv'
-    with open(filename, 'w', newline='') as csvfile:
+    with open(filename, 'w', newline='', encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
                             quoting=csv.QUOTE_MINIMAL)
         writer.writerow(columns)

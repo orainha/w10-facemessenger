@@ -40,7 +40,10 @@
         var data, filename, link;
         //show popup
         var col_delimiter = prompt("Choose column delimiter. (Default: , ) (Recommended: » )", ",");
-        if (col_delimiter == null || col_delimiter == "") {
+        // null when user click on Cancel button
+        if (col_delimiter == null) return;
+        
+        if (col_delimiter == "") {
             col_delimiter = ",";
         }
         var csv = convertArrayOfObjectsToCSV({
@@ -82,7 +85,7 @@
                 for (var j = 0; j < cells.length; j++) {
                     // if it's an image field, needs special treatment             
                     var start_img_index
-                    if ((start_img_index = cells[j].innerHTML.search("<img src=\"")) > 0) {
+                    if ((start_img_index = cells[j].innerHTML.search("<img")) > 0) {
                         var img_url;
                         if (cells[j].firstElementChild.attributes.href)
                         {

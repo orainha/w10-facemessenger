@@ -4,6 +4,8 @@
 (function () {
     'use strict'
     
+    // XXX (orainha) - Can we merge searchContacts and searchImages in only one function?
+
     function searchContacts() {
         // Declare variables
         var input, filter, tbody_trs, id_col, name_col, email_col, phone_col, i, txtValue;
@@ -17,7 +19,8 @@
             name_col = tbody_trs[i].getElementsByTagName("td")[1];
             email_col = tbody_trs[i].getElementsByTagName("td")[2];
             phone_col = tbody_trs[i].getElementsByTagName("td")[3];
-
+            
+            // XXX (orainha) Find a better way to do this..
             txtValue = id_col.textContent || id_col.innerText ;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
                 tbody_trs[i].style.display = "";
@@ -70,6 +73,7 @@
             file_col = tbody_trs[i].getElementsByTagName("td")[1];
             date_col = tbody_trs[i].getElementsByTagName("td")[2];
 
+            // XXX (orainha) Find a better way to do this..
             txtValue = source_col.textContent || source_col.innerText ;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
                 tbody_trs[i].style.display = "";
@@ -103,6 +107,39 @@
             }
         }
     }
+
+    function searchConversations() {
+        // Declare variables
+        var input, filter, tbody_trs, id_col, name_col, i, txtValue;
+        input = inputSearchConversations
+        filter = input.value.toUpperCase();
+        tbody_trs = document.getElementsByClassName("conversation-group")
+        
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < tbody_trs.length; i++) {
+            id_col = tbody_trs[i].id
+          
+            // XXX (orainha) Find a better way to do this..
+            txtValue = id_col;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tbody_trs[i].style.display = "";
+            } else {
+                for (let j=1; j<tbody_trs[i].children.length; j++)
+                {
+                    name_col = tbody_trs[i].children[j].children[1];
+                    txtValue = name_col.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tbody_trs[i].style.display = "";
+                        console.log(txtValue + " " + txtValue.toUpperCase().indexOf(filter))
+                    }else{
+                        tbody_trs[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    }
+
+
     var inputSearchContacts = document.getElementById("inputSearchContacts")
     if (inputSearchContacts != null)
     {
@@ -114,6 +151,13 @@
     if (inputSearchImages != null)
     {
         inputSearchImages.addEventListener('keyup', searchImages);
+    }
+
+
+    var inputSearchConversations = document.getElementById("inputSearchConversations")
+    if (inputSearchConversations != null)
+    {
+        inputSearchConversations.addEventListener('keyup', searchConversations);
     }
     
 
