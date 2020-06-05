@@ -31,11 +31,6 @@ def run(args):
     core.messages.output_file_path(args.output)
     core.images.input_file_path(args.input)
     core.images.output_file_path(args.output)
-<<<<<<< HEAD
-    utils.create_web_files(args.output)
-    utils.create_index_html(args.output, args.input, args.depth)
-=======
->>>>>>> fd3649f384d143dc01a69e0d656e48c0681ba7f8
     
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
@@ -57,6 +52,9 @@ def run(args):
         images_template = core.images.TEMPLATE_FILENAME
         images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
         core.images.report_html(images_template, images_report, args.depth)
+        # Create report.html
+        utils.create_web_files(args.output)
+        utils.create_index_html(args.output, args.input, args.depth)
 
     elif args.format == 'csv':
         delim = args.delimiter
