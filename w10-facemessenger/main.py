@@ -37,7 +37,6 @@ def run(args):
     core.images.extract_all(images_path)
     
     if args.format == 'html':
-        utils.create_web_files(args.output, args.input, args.depth)
         # XXX (ricardoapl) Don't other modules make use of DB_PATH?
         db_path = core.contacts.DB_PATH
         contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
