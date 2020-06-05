@@ -131,16 +131,16 @@ def report_csv(delim):
     # XXX (ricardoapl) Careful! Columns is highly dependant on the query,
     #     if we change query we also have to change columns.
     columns = [
-        'id',
-        'profile_picture_url',
-        'name',
-        'phone_number',
-        'email_address',
-        'profile_picture_large_url'
+        'Id',
+        'Small Profile Picture',
+        'Name',
+        'Phone',
+        'Email',
+        'Large Profile Picture'
     ]
     # XXX (ricardoapl) Remove reference to NEW_FILE_PATH?
     filename = NEW_FILE_PATH + 'contacts.csv'
-    with open(filename, 'w', newline='') as csvfile:
+    with open(filename, 'w', newline='', encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
                             quoting=csv.QUOTE_MINIMAL)
         writer.writerow(columns)

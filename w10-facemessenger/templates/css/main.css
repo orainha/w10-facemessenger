@@ -36,16 +36,17 @@ tbody{
 }
 
 #divContent{
-    height: 500px;
+    height: 650px;
 }
 
 #divFrame{
-    height: 500px
+    height: 600px;
+    overflow-y: hidden;
 }
 
 #iframe{
     width:100%; 
-    height: 700px;
+    height: 100%;
 }
 
 #imgContact{
@@ -53,12 +54,18 @@ tbody{
     border-radius: 50%;
 }
 
-#tdContactName{
-    margin-top: 10px;  
+#imgParticipant{
+    width: 50px;
+    margin-left: -100px;
+    border-radius: 50%;
 }
 
 #tableMessages{
     display: none;
+}
+
+.fast-button{
+    border-radius: 50px;
 }
 
 #tableContacts thead{
@@ -75,6 +82,9 @@ tbody{
     padding: 5px;
 }
 
-
+#divConversations{
+    max-height: 550px;
+    overflow-y: auto;
+}
 
 /* footer */

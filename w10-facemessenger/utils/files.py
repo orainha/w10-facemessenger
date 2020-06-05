@@ -59,14 +59,17 @@ def extract(output_path, file_path, url, filename, filetype):
 
 def get_filetype(file_url):
     try:
-        strSplit = file_url.split('?')
-        strLen = len(strSplit[0])
-        periodIndex = strLen - 1
-        while (strSplit[0][periodIndex].find('.') == -1):
-            periodIndex = periodIndex -1
-            if (periodIndex < 0):
-                break
-        filetype = strSplit[0][periodIndex:strLen]
+        if file_url.find('.jpg') != -1:
+            filetype = '.jpg'
+        else:
+            strSplit = file_url.split('?')
+            strLen = len(strSplit[0])
+            periodIndex = strLen - 1
+            while (strSplit[0][periodIndex].find('.') == -1):
+                periodIndex = periodIndex -1
+                if (periodIndex < 0):
+                    break
+            filetype = strSplit[0][periodIndex:strLen]
         return filetype
     except OSError as error:
         print("Error on get_filetype(): " + str(error))
@@ -151,9 +154,8 @@ def create_image_files(output_path):
         print(error)
 
 
-def create_web_files(output_path, input_path, depth):
+def create_web_files(output_path):
     create_image_files(output_path)
-    create_index_html(output_path, input_path, depth)
     create_js_css(output_path)
 
 

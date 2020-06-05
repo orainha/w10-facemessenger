@@ -1,5 +1,7 @@
 (function () {
     'use strict'
+
+    // XXX (orainha) - This js is not used, can be deleted
     var btn_show_hide = document.getElementById('show_hide_contact_images');
     btn_show_hide.innerText = 'Show Images';
     var show_images = false
