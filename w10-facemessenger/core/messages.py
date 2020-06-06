@@ -200,6 +200,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_row_message["class"] = "row"
     div_message = html_doc_new_file.new_tag('div')
     div_message["id"] = "divMessage"
+    div_message["class"] = "div-message"
     div_message_content = html_doc_new_file.new_tag('div')
     message = html_doc_new_file.new_tag('td')
     # Must copy td_message to can use on both div and table

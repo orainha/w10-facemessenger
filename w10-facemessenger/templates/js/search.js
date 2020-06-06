@@ -139,6 +139,26 @@
         }
     }
 
+    function searchMessages() {
+        // Declare variables
+        var input, filter, tbody_trs, message_text, i, txtValue;
+        input = inputSearchMessages
+        filter = input.value.toUpperCase();
+        tbody_trs = document.getElementsByClassName("div-message")
+        
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < tbody_trs.length; i++){
+            
+            message_text = tbody_trs[i].children[0];
+            txtValue = message_text.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tbody_trs[i].parentElement.parentElement.style.display = "";
+            } else{
+                tbody_trs[i].parentElement.parentElement.style.display = "none";
+            }
+        }
+    }
+
 
     var inputSearchContacts = document.getElementById("inputSearchContacts")
     if (inputSearchContacts != null)
@@ -158,6 +178,13 @@
     if (inputSearchConversations != null)
     {
         inputSearchConversations.addEventListener('keyup', searchConversations);
+    }
+
+
+    var inputSearchMessages = document.getElementById("inputSearchMessages")
+    if (inputSearchMessages != null)
+    {
+        inputSearchMessages.addEventListener('keyup', searchMessages);
     }
     
 
