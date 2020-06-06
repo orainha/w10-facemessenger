@@ -172,12 +172,10 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     # suspect align-right    
     suspect_element_style = "col text-right w-75"
     suspect_element_style_color = "col text-right bg-dark text-white"
-    # suspect_element_style_border = "border-radius: 50px 50px 0px 50px;"
 
     # victim align-left
     victim_element_style = "col text-left w-75"
     victim_element_style_color = "col text-left bg-secondary text-white"
-    # victim_element_style_border = "border-radius: 50px 50px 50px 0px;"
 
     # Sender
     div_row_sender = html_doc_new_file.new_tag('div')
@@ -201,6 +199,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_row_message = html_doc_new_file.new_tag('div')
     div_row_message["class"] = "row"
     div_message = html_doc_new_file.new_tag('div')
+    div_message["id"] = "divMessage"
     div_message_content = html_doc_new_file.new_tag('div')
     message = html_doc_new_file.new_tag('td')
     # Must copy td_message to can use on both div and table
@@ -208,11 +207,9 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     if(suspect_contact_id == sender_id):
         div_message_content["id"] = "divMessageContentSuspect"
         div_message_content["class"] = suspect_element_style_color
-        # div_message_content["style"] = suspect_element_style_border
     else:
         div_message_content["id"] = "divMessageContentVictim"
         div_message_content["class"] = victim_element_style_color
-        # div_message_content["style"] = victim_element_style_border
     div_message_content.append(message)
     div_message.append(div_message_content)
     div_empty = html_doc_new_file.new_tag('div')
@@ -409,6 +406,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
             extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
+            href_tag['style'] = "color: white"
             href_tag.append(
                 "Audio - " + attachment_title + " - " + attachment_subtitle)
             td_message.append(href_tag)
@@ -449,6 +447,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
                 p_tag.append(attachment_filename)
                 href_tag = html_doc_new_file.new_tag('a')
                 href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}' + '.' + filetype
+                href_tag['style'] = "color: white"
                 href_tag.append(p_tag)
                 td_message.append(href_tag)
     return td_message
@@ -466,6 +465,7 @@ def report_html_messages(template_path, depth):
     last_sender = 0
     last_message_id = 0
     web_img_url_counter = 0
+    button_style_class = "btn btn-outline-light my-2 my-sm-0 fast-button"
     for row in cursor:
         # Query fields
         new_thread_key = row[0]
@@ -556,12 +556,22 @@ def report_html_messages(template_path, depth):
                     filetype = ''
                 else:
                     filetype = utils.get_filetype(attachment_preview_url)
+                a_href_tag = html_doc_new_file.new_tag('a')
+                a_href_tag["href"] = attachment_playable_url
+                a_href_tag["target"] = "_new"
+                a_href_tag["class"] = button_style_class
+                a_href_tag["style"] = "color: white"
+                a_href_tag.append("Play")
                 if (depth == "fast"):
-                    button_id = attachment_filename + filetype
-                    button = create_message_download_button(html_doc_new_file, button_id, 
-                        'btn_download_message_file', attachment_preview_url, "Download Image")
+                    a_tag = html_doc_new_file.new_tag('a')
+                    a_tag['class'] = button_style_class
+                    a_tag['href'] = attachment_preview_url
+                    a_tag['target'] = "_new"
+                    a_tag.append("View Image")
                     td_message = html_doc_new_file.new_tag('td')
-                    td_message.append(button)
+                    td_message.append(a_tag)
+                    if attachment_playable_url != "None":
+                        td_message.append(a_href_tag)
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
                 elif (depth == "complete"):
                     extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
@@ -569,6 +579,8 @@ def report_html_messages(template_path, depth):
                     img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                     td_message = html_doc_new_file.new_tag('td')
                     td_message.append(img_tag)
+                    if attachment_playable_url != "None":
+                        td_message.append(a_href_tag)
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
             else:
                 td_message = html_doc_new_file.new_tag('td')
@@ -682,11 +694,7 @@ def build_conversations_profile_pic(html, participant_pic, participant_contact_i
 def build_conversations_name(html_doc_new_file, thread_key, participant_name, div_col_right, depth, td_name):
     href_msgs_tag = html_doc_new_file.new_tag('a')
     href_msgs_tag["href"] = f'messages\{str(thread_key)}.html'
-    href_msgs_tag["target"] = 'targetframemessages'
-    if (depth == "fast"):
-        href_msgs_tag["style"] = "margin-left: -10px"
-    elif (depth=="complete"):
-        href_msgs_tag["style"] = "margin-left: -50px"
+    href_msgs_tag["target"] = "targetframemessages"
     href_msgs_tag.append(str(participant_name))
     td_name.append(href_msgs_tag)
     return td_name
@@ -736,7 +744,7 @@ def report_html_conversations(template_path, depth):
         div_col_left = html_doc_new_file.new_tag('div')
         div_col_left["class"] = "col text-right"
         div_col_right = html_doc_new_file.new_tag('div')
-        div_col_right["class"] = "col text-left mt-2"
+        div_col_right["class"] = "col text-left mt-3"
 
         # Table will not be visible, but its needed for csv export
         # td 1 - Profile Pic
