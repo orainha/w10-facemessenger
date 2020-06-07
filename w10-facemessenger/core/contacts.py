@@ -67,8 +67,7 @@ def report_html(database_path, template_path, depth):
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             # td 1
-            td_id = html_doc_new_file.new_tag('th')
-            td_id["scope"] = "row"
+            td_id = html_doc_new_file.new_tag('td')
             td_id.append(contact_id)
             # td 2
             filetype = utils.get_filetype(contact_large_pic)

@@ -4,109 +4,27 @@
 (function () {
     'use strict'
     
-    // XXX (orainha) - Can we merge searchContacts and searchImages in only one function?
 
-    function searchContacts() {
+    function search(input, elements, cols_number) {
         // Declare variables
-        var input, filter, tbody_trs, id_col, name_col, email_col, phone_col, i, txtValue;
-        input = inputSearchContacts
+        var filter, column, i, j, txtValue;
         filter = input.value.toUpperCase();
-        tbody_trs = document.getElementById("tableContacts").getElementsByTagName("tbody")[0].children
-        
         // Loop through all list items, and hide those who don't match the search query
-        for (i = 0; i < tbody_trs.length; i++) {
-            id_col = tbody_trs[i].getElementsByTagName("th")[0]
-            name_col = tbody_trs[i].getElementsByTagName("td")[1];
-            email_col = tbody_trs[i].getElementsByTagName("td")[2];
-            phone_col = tbody_trs[i].getElementsByTagName("td")[3];
-            
-            // XXX (orainha) Find a better way to do this..
-            txtValue = id_col.textContent || id_col.innerText ;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tbody_trs[i].style.display = "";
-            } else {
-                txtValue = name_col.textContent || name_col.innerText;
+        for (i = 0; i < elements.length; i++) {
+            for (j = 0; j <= cols_number; j++)
+            {
+                column = elements[i].getElementsByTagName("td")[j]
+                txtValue = column.textContent || column.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tbody_trs[i].style.display = "";
+                    elements[i].style.display = "";
+                    break;
                 }else{
-                    txtValue = email_col.textContent || email_col.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tbody_trs[i].style.display = "";
-                    }else{
-                        txtValue = phone_col.textContent || phone_col.innerText;
-                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                            tbody_trs[i].style.display = "";
-                        }else{
-                            tbody_trs[i].style.display = "none";
-                        }
-                    }
-    
-                    // for (let j=1; j<=3;j++)
-                    // {
-                    //     let column = tbody_trs[i].getElementsByTagName("td")[j]
-                    //     txtValue = column.textContent || column.innerText;
-                    //     if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    //             tbody_trs[i].style.display = "";
-                    //     }else{
-                    //         if (j == 3)
-                    //         {
-                    //             tbody_trs[i].style.display = "none";
-                    //         }
-                            
-                    //     }
-                    // }
+                    if (j == cols_number) elements[i].style.display = "none";
                 }
             }
         }
     }
 
-    function searchImages() {
-        // Declare variables
-        var input, filter, tbody_trs, source_col, file_col, date_col, i, txtValue;
-        input = inputSearchImages
-        filter = input.value.toUpperCase();
-        tbody_trs = document.getElementById("tableImages").getElementsByTagName("tbody")[0].children
-        
-        // Loop through all list items, and hide those who don't match the search query
-        for (i = 0; i < tbody_trs.length; i++) {
-            source_col = tbody_trs[i].getElementsByTagName("td")[0]
-            file_col = tbody_trs[i].getElementsByTagName("td")[1];
-            date_col = tbody_trs[i].getElementsByTagName("td")[2];
-
-            // XXX (orainha) Find a better way to do this..
-            txtValue = source_col.textContent || source_col.innerText ;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tbody_trs[i].style.display = "";
-            } else {
-                txtValue = file_col.textContent || file_col.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tbody_trs[i].style.display = "";
-                }else{
-                    txtValue = date_col.textContent || date_col.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tbody_trs[i].style.display = "";
-                    }else{
-                        tbody_trs[i].style.display = "none";
-                    }
-    
-                    // for (let j=0; j<3;j++)
-                    // {
-                    //     let column = tbody_trs[i].getElementsByTagName("td")[j]
-                    //     txtValue = column.textContent || column.innerText;
-                    //     if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    //             tbody_trs[i].style.display = "";
-                    //     }else{
-                    //         if (j == 3)
-                    //         {
-                    //             tbody_trs[i].style.display = "none";
-                    //         }
-                            
-                    //     }
-                    // }
-                }
-            }
-        }
-    }
 
     function searchConversations() {
         // Declare variables
@@ -139,16 +57,15 @@
         }
     }
 
+
     function searchMessages() {
         // Declare variables
         var input, filter, tbody_trs, message_text, i, txtValue;
         input = inputSearchMessages
         filter = input.value.toUpperCase();
         tbody_trs = document.getElementsByClassName("div-message")
-        
         // Loop through all list items, and hide those who don't match the search query
         for (i = 0; i < tbody_trs.length; i++){
-            
             message_text = tbody_trs[i].children[0];
             txtValue = message_text.innerText;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
@@ -163,14 +80,18 @@
     var inputSearchContacts = document.getElementById("inputSearchContacts")
     if (inputSearchContacts != null)
     {
-        inputSearchContacts.addEventListener('keyup', searchContacts);
+        let elements = document.getElementById("tableContacts").getElementsByTagName("tbody")[0].children
+        let cols_number = 3
+        inputSearchContacts.addEventListener('keyup', function(){search(inputSearchContacts, elements, cols_number)});
     }
-        
-
+    
+    
     var inputSearchImages = document.getElementById("inputSearchImages")
     if (inputSearchImages != null)
     {
-        inputSearchImages.addEventListener('keyup', searchImages);
+        let elements = document.getElementById("tableImages").getElementsByTagName("tbody")[0].children
+        let cols_number = 2
+        inputSearchImages.addEventListener('keyup', function(){search(inputSearchImages, elements, cols_number)});
     }
 
 
