@@ -14,7 +14,7 @@ def replace_by_default(output_path, file_path, filename, filetype):
     try:
         #create /images if not exists
         if not os.path.exists(output_path + "\images"):
-            create_image_files(output_path)
+             raise IOError(output_path + "\images path does not exist")
 
         # Copy default "not found" image and name it with contact id as file name
         shutil.copy2(not_found_image_filename, file_path +

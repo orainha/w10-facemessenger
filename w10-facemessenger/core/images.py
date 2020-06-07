@@ -88,7 +88,6 @@ def report_html(template_path, report_path, depth):
 
 def append_html(data, html, depth):
     tbody = html.tbody
-    filename_counter = 1
     previous_filename = ''
     for datum in data:
         profile_tag = html.new_tag('td')
@@ -191,20 +190,16 @@ def filter_image_content(data):
 def input_file_path(path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
-    PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    # PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    PATH = utils.get_input_file_path(path)
 
 
 def output_file_path(path):
     global NEW_FILE_PATH
     global IMAGES_PATH
-    path = os.path.expandvars(path)
-    NEW_FILE_PATH = path + "\\report\\"
+    NEW_FILE_PATH = utils.get_output_file_path(path)
     IMAGES_PATH = NEW_FILE_PATH + "images-search\\"
     try:
-        if not os.path.exists(path):
-            raise IOError("Error: Given destination output path not found")
-        if not os.path.exists(NEW_FILE_PATH):
-            os.makedirs(NEW_FILE_PATH)
         if not os.path.exists(IMAGES_PATH):
             os.makedirs(IMAGES_PATH)
     except IOError as error:
