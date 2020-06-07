@@ -69,9 +69,9 @@
             message_text = tbody_trs[i].children[0];
             txtValue = message_text.innerText;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tbody_trs[i].parentElement.parentElement.style.display = "";
+                tbody_trs[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "";
             } else{
-                tbody_trs[i].parentElement.parentElement.style.display = "none";
+                tbody_trs[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "none";
             }
         }
     }
