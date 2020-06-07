@@ -41,8 +41,7 @@ CONVERSATIONS_QUERRY = """
 MESSAGES_PER_CONVERSATION_QUERRY = """
     SELECT
         m.thread_key,
-        datetime((m.timestamp_ms)/1000,'unixepoch'), 
-        u.contact_id,
+        datetime((m.timestamp_ms)/1000,'unixepoch'),
         m.sender_id,
         u.name,
         m.text, 
@@ -168,6 +167,8 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     message_id = fields[8]
     last_message_id = fields[9]
     last_sender = fields[10]
+    filename = fields[11]
+    last_filename = fields[12]
 
     # suspect align-right    
     suspect_element_style = "col text-right w-75"
@@ -290,6 +291,9 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
             if reaction != 'None':
                 div_suspect.append(div_row_reaction)
         else:
+            if filename != 'None' and last_filename != filename:
+                div_suspect.append(div_row_message)
+                div_suspect.append(div_row_datetime)
             if reaction != 'None':
                 div_suspect.append(div_row_reaction)
         div_row_w100_suspect.append(div_suspect)
@@ -305,6 +309,9 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
             if reaction != 'None':
                 div_victim.append(div_row_reaction)
         else:
+            if filename != 'None' and last_filename != filename:
+                div_victim.append(div_row_message)
+                div_victim.append(div_row_datetime)
             if reaction != 'None':
                 div_victim.append(div_row_reaction)
         div_row_w100_victim.append(div_victim)
@@ -465,27 +472,27 @@ def report_html_messages(template_path, depth):
     new_thread_key = 1
     last_sender = 0
     last_message_id = 0
+    last_attachment_filename = ""
     web_img_url_counter = 0
     button_style_class = "btn btn-outline-light my-2 my-sm-0 fast-button"
     for row in cursor:
         # Query fields
         new_thread_key = row[0]
         datetime = str(row[1])
-        contact_id = str(row[2])
-        sender_id = str(row[3])
-        sender_name = str(row[4])
-        message = str(row[5])
-        attachment_preview_url = str(row[6])
-        attachment_playable_url = str(row[7])
-        attachment_title = str(row[8])
-        attachment_subtitle = str(row[9])
-        attachment_type = str(row[10])
-        attachment_url_mimetype = str(row[11])
-        attachment_filename = str(row[12])
-        reaction = str(row[13])
-        reaction_sender = str(row[14])
-        attachment_duration = str(row[15])
-        message_id = str(row[16])
+        sender_id = str(row[2])
+        sender_name = str(row[3])
+        message = str(row[4])
+        attachment_preview_url = str(row[5])
+        attachment_playable_url = str(row[6])
+        attachment_title = str(row[7])
+        attachment_subtitle = str(row[8])
+        attachment_type = str(row[9])
+        attachment_url_mimetype = str(row[10])
+        attachment_filename = str(row[11])
+        reaction = str(row[12])
+        reaction_sender = str(row[13])
+        attachment_duration = str(row[14])
+        message_id = str(row[15])
 
         # BeautifulSoup variables
         html_doc_new_file = ""
@@ -594,9 +601,9 @@ def report_html_messages(template_path, depth):
 
             div_container_fluid = html_doc_new_file.new_tag('div')
             if(suspect_contact_id == sender_id):
-                div_container_fluid["class"] = "container-fluid mr-5 w-80"
+                div_container_fluid["class"] = "container-fluid w-80 mr-5"
             else:
-                div_container_fluid["class"] = "container-fluid ml-5 w-80"
+                div_container_fluid["class"] = "container-fluid w-80 ml-5"
 
             fields = [
                 suspect_contact_id,
@@ -609,12 +616,16 @@ def report_html_messages(template_path, depth):
                 reaction_sender,
                 message_id,
                 last_message_id, 
-                last_sender
+                last_sender,
+                attachment_filename,
+                last_attachment_filename
             ]
             div_container_fluid = create_modern_message_style(html_doc_new_file, fields, div_container_fluid)
 
             last_sender = sender_id
-            last_message_id = message_id 
+            last_message_id = message_id
+            if (attachment_filename != 'None'):
+                last_filename = attachment_filename
             
             html_doc_new_file.table.insert_before(div_container_fluid)
 
@@ -626,7 +637,6 @@ def report_html_messages(template_path, depth):
             fields = [
                 thread_key,
                 datetime,
-                contact_id,
                 sender_id,
                 sender_name,
                 td_message,
@@ -645,11 +655,6 @@ def report_html_messages(template_path, depth):
             new_file.seek(0)
             new_file.write(html_doc_new_file.prettify())
             new_file.truncate()
-
-            # has_header = html_doc_new_file.find_all(
-            #     "p", attrs={"id": "filename"})
-            # if (not has_header):
-            #     fill_header(DB_PATH, new_file_path)
 
             # Close file
             new_file.close()
@@ -850,7 +855,6 @@ def report_csv_messages(delim):
     columns = [
         'thread_key',
         'datetime',
-        'contact_id',
         'sender_id',
         'name',
         'text',
@@ -890,6 +894,7 @@ def input_file_path(user_path):
     global PATH
     PATH = utils.get_input_file_path(user_path)
     DB_PATH = utils.get_db_path(PATH)
+
 
 def output_file_path(destination_path):
     global NEW_FILE_PATH
