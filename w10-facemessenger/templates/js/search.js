@@ -28,29 +28,28 @@
 
     function searchConversations() {
         // Declare variables
-        var input, filter, tbody_trs, id_col, name_col, i, txtValue;
+        var input, filter, conversations, id_col, name_col, i, txtValue;
         input = inputSearchConversations
         filter = input.value.toUpperCase();
-        tbody_trs = document.getElementsByClassName("conversation-group")
+        conversations = document.getElementsByClassName("conversation-group")
         
         // Loop through all list items, and hide those who don't match the search query
-        for (i = 0; i < tbody_trs.length; i++) {
-            id_col = tbody_trs[i].id
+        for (i = 0; i < conversations.length; i++) {
+            id_col = conversations[i].id
           
             // XXX (orainha) Find a better way to do this..
             txtValue = id_col;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tbody_trs[i].style.display = "";
+                conversations[i].style.display = "";
             } else {
-                for (let j=1; j<tbody_trs[i].children.length; j++)
+                for (let j = 1; j < conversations[i].children.length; j++)
                 {
-                    name_col = tbody_trs[i].children[j].children[1];
+                    name_col = conversations[i].children[j].children[1];
                     txtValue = name_col.innerText;
                     if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tbody_trs[i].style.display = "";
-                        console.log(txtValue + " " + txtValue.toUpperCase().indexOf(filter))
+                        conversations[i].style.display = "";
                     }else{
-                        tbody_trs[i].style.display = "none";
+                        conversations[i].style.display = "none";
                     }
                 }
             }
@@ -60,18 +59,18 @@
 
     function searchMessages() {
         // Declare variables
-        var input, filter, tbody_trs, message_text, i, txtValue;
+        var input, filter, messages, message_text, i, txtValue;
         input = inputSearchMessages
         filter = input.value.toUpperCase();
-        tbody_trs = document.getElementsByClassName("div-message")
+        messages = document.getElementsByClassName("div-message")
         // Loop through all list items, and hide those who don't match the search query
-        for (i = 0; i < tbody_trs.length; i++){
-            message_text = tbody_trs[i].children[0];
+        for (i = 0; i < messages.length; i++){
+            message_text = messages[i].children[0];
             txtValue = message_text.innerText;
             if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tbody_trs[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "";
+                messages[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "";
             } else{
-                tbody_trs[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "none";
+                messages[i].parentElement.parentElement.parentElement.parentElement.parentElement.style.display = "none";
             }
         }
     }
