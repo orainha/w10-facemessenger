@@ -169,6 +169,12 @@ def output_file_path(destination_path):
     NEW_FILE_PATH = utils.get_output_file_path(destination_path)
 
 def extract_images(extract_contacts_list):
+    small_images_path = NEW_FILE_PATH + f'contacts\images\small'
+    large_images_path = NEW_FILE_PATH + f'contacts\images\large'
+    if not os.path.exists(small_images_path):
+        os.makedirs(small_images_path)
+    if not os.path.exists(large_images_path):
+        os.makedirs(large_images_path)
     threads = list()
     for contact in extract_contacts_list:
         new_file_path = contact[0]
@@ -176,8 +182,6 @@ def extract_images(extract_contacts_list):
         large_pic = contact[2]
         id = contact[3]
         filetype = contact[4]
-        small_images_path = new_file_path + f'contacts\images\small'
-        large_images_path = new_file_path + f'contacts\images\large'
         x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
         x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
         threads.append(x)
