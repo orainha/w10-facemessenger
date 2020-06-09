@@ -938,6 +938,12 @@ def extract_message_file(path, url, filename, filetype, msg_thread_key):
 
 
 def extract_images(extract_conversation_list):
+    small_images_path = NEW_FILE_PATH + f'conversations\images\small'
+    large_images_path = NEW_FILE_PATH + f'conversations\images\large'
+    if not os.path.exists(small_images_path):
+        os.makedirs(small_images_path)
+    if not os.path.exists(large_images_path):
+        os.makedirs(large_images_path)
     threads = list()
     for conversation in extract_conversation_list:
         new_file_path = conversation[0]
@@ -945,8 +951,6 @@ def extract_images(extract_conversation_list):
         large_pic = conversation[2]
         filetype = conversation[3]
         id = conversation[4]
-        small_images_path = new_file_path + f'conversations\images\small'
-        large_images_path = new_file_path + f'conversations\images\large'
         x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
         x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
         threads.append(x)
@@ -955,9 +959,3 @@ def extract_images(extract_conversation_list):
         x1.start()
     for thread in threads:
         thread.join()
-
-# def extract_images(output_path, small_pic_url, large_pic_url, filetype, filename):
-#     small_images_path = output_path + f'\conversations\images\small'
-#     large_images_path = output_path + f'\conversations\images\large'
-#     utils.extract(output_path, small_images_path, small_pic_url, filename, filetype)
-#     utils.extract(output_path, large_images_path, large_pic_url, filename, filetype)
