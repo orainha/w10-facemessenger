@@ -8,6 +8,7 @@ import requests
 import shutil
 
 import utils.files as utils
+import threading
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
@@ -41,6 +42,11 @@ def extract_one(src, dst):
     ]
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
+def extract_entry(entry, prefix, suffix):
+    if entry.is_dir():
+        filename = f'{prefix}-{suffix}'
+        extract_one(entry, filename)
+        suffix += 1
 
 # XXX (ricardoapl) Add destination path/file argument?
 # XXX (ricardoapl) Improve docstring according to PEP8
@@ -50,12 +56,19 @@ def extract_all(path):
     """
     prefix = 'tmp'
     suffix = 1
+    threads = list()
     with os.scandir(path) as entries:
         for entry in entries:
-            if entry.is_dir():
-                filename = f'{prefix}-{suffix}'
-                extract_one(entry, filename)
-                suffix += 1
+            x = threading.Thread(target=extract_entry, args=(entry, prefix, suffix,))
+            threads.append(x)
+            x.start()
+        # for thread in threads:
+        #     thread.start()
+        for thread in threads:
+            thread.join()
+
+
+
 
 
 def clean(path):
@@ -69,8 +82,8 @@ def clean(path):
 
 
 # XXX (ricardoapl) Specify assumptions like 'extract_all() has been run'
-def report_html(template_path, report_path, depth):
-    with open(template_path, 'r') as template:
+def report_html(depth):
+    with open(TEMPLATE_FILENAME, 'r') as template:
         content = template.read()
     html = bs4.BeautifulSoup(content, features='html.parser')
     # XXX (ricardoapl) If we add destination path/file argument to extract_all,
@@ -81,6 +94,7 @@ def report_html(template_path, report_path, depth):
                 content = read_jsonl(entry.name)
                 image_content = filter_image_content(content)
                 append_html(image_content, html, depth)
+    report_path = NEW_FILE_PATH + REPORT_FILENAME
     with open(report_path, 'w') as report:
         output = html.prettify()
         report.write(output)
@@ -89,6 +103,7 @@ def report_html(template_path, report_path, depth):
 def append_html(data, html, depth):
     tbody = html.tbody
     previous_filename = ''
+    extract_images_list = list()
     for datum in data:
         profile_tag = html.new_tag('td')
         profile_tag.string = datum['profile']
@@ -111,10 +126,11 @@ def append_html(data, html, depth):
             button_tag.append('Download Image')
             image_tag.append(button_tag)
         elif (depth == "complete"):
-            img_tag = html.new_tag('img')
-            # We are now ready for extract
-            extract_image(NEW_FILE_PATH, datum['url'], filename, filetype)
+            url = datum['url']
+            image = [NEW_FILE_PATH, url, filename, filetype]
+            extract_images_list.append(image)
             # Show on html
+            img_tag = html.new_tag('img')
             img_tag['src'] = f'images-search\{filename}{filetype}'
             image_tag.append(img_tag)
             previous_filename = filename
@@ -125,6 +141,8 @@ def append_html(data, html, depth):
         row_tag.append(datetime_tag)
         row_tag.append(image_tag)
         tbody.append(row_tag)
+    if (depth == "complete"):
+        extract_image(extract_images_list)
 
 
 # XXX (ricardoapl) Specify assumptions like 'extract_all() has been run'
@@ -187,6 +205,11 @@ def filter_image_content(data):
     return filtered_data
 
 
+def paths(args):
+    input_file_path(args.input)
+    output_file_path(args.output)
+
+
 def input_file_path(path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
@@ -207,12 +230,19 @@ def output_file_path(path):
         sys.exit()
 
 
-
-def extract_image(path, url, name, filetype):
-    global PATH
-    PATH = os.path.expandvars(path)
-    IMAGES_PATH = PATH + f'images-search'
-    utils.extract(path, IMAGES_PATH, url, name, filetype)
+def extract_image(extract_images_list):
+    images_path = IMAGES_PATH
+    threads = list()
+    for image in extract_images_list:
+        new_file_path = image[0]
+        url = image[1]
+        filename = image[2]
+        filetype = image[3]
+        x = threading.Thread(target=utils.extract, args=(new_file_path, images_path, url, filename, filetype,))
+        threads.append(x)
+        x.start()
+    for thread in threads:
+        thread.join()
 
 
 

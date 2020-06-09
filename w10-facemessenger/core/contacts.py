@@ -6,14 +6,16 @@ import json
 import sqlite3
 # TODO (orainha) Fix requests import!
 import requests
-
-from threading import *
+import threading 
+from threading import * 
 
 from bs4 import BeautifulSoup
 
 from core.headers import fill_header
 
 import utils.files as utils
+
+
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
 CONTACTS_TEMPLATE_FILE_PATH = os.path.join(os.path.dirname(__file__), r'..\templates\template_contacts.html')
@@ -38,19 +40,19 @@ class ContactsCollector(Thread):
         pass
 
 
-def report_html(database_path, template_path, depth):
+def report_html(depth):
     global NEW_FILE_PATH
     # Connect to database
-    conn = sqlite3.connect(database_path)
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(CONTACTS_QUERRY)
 
     # Get template and create new file
-    template_file = open(template_path, 'r', encoding='utf-8')
+    template_file = open(CONTACTS_TEMPLATE_FILE_PATH, 'r', encoding='utf-8')
     html_doc_new_file = BeautifulSoup(template_file, features='html.parser')
     new_file = open(NEW_FILE_PATH + "contacts.html", 'w', encoding='utf-8')
     template_file.close()
-
+    extract_contact_list = list()
     for row in c:
         # Query fields
         contact_id = str(row[0])
@@ -64,6 +66,7 @@ def report_html(database_path, template_path, depth):
             contact_phone = "No Phone"
         if contact_email == 'None':
             contact_email = "No Email"
+        threads = list()
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             # td 1
@@ -80,7 +83,9 @@ def report_html(database_path, template_path, depth):
                 button_tag.append('Download Image')
                 td_download_photo.append(button_tag)
             elif (depth == 'complete'):
-                extract_images(NEW_FILE_PATH, contact_pic, contact_large_pic, contact_id, filetype)
+                # Download images later
+                contact = [NEW_FILE_PATH, contact_pic, contact_large_pic, contact_id, filetype]
+                extract_contact_list.append(contact)
                 td_photo = html_doc_new_file.new_tag('td')
                 href_tag = html_doc_new_file.new_tag('a')
                 href_tag['href'] = f'contacts\images\large\{contact_id}{filetype}'
@@ -118,6 +123,8 @@ def report_html(database_path, template_path, depth):
     new_file.write(html_doc_new_file.prettify())
     new_file.truncate()
     new_file.close()
+    if (depth == 'complete'):
+        extract_images(extract_contact_list)
 
 
 def report_csv(delim):
@@ -145,6 +152,9 @@ def report_csv(delim):
         writer.writerow(columns)
         writer.writerows(rows)
 
+def paths(args):
+    input_file_path(args.input)
+    output_file_path(args.output)
 
 def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
@@ -158,14 +168,21 @@ def output_file_path(destination_path):
     global NEW_FILE_PATH
     NEW_FILE_PATH = utils.get_output_file_path(destination_path)
 
-
-def extract_images(output_path, small_pic_url, large_pic_url, contact_id, filetype):
-    global PATH
-    CONTACTS_FILENAME = 'contacts.html'
-    PATH = os.path.expandvars(output_path)
-    SMALL_IMAGES_PATH = PATH + f'\contacts\images\small'
-    LARGE_IMAGES_PATH = PATH + f'\contacts\images\large'
-    CONTACTS_FILENAME = PATH + f'\\{CONTACTS_FILENAME}'
-    
-    utils.extract(output_path, SMALL_IMAGES_PATH, small_pic_url, contact_id, filetype)
-    utils.extract(output_path, LARGE_IMAGES_PATH, large_pic_url, contact_id, filetype)
+def extract_images(extract_contacts_list):
+    threads = list()
+    for contact in extract_contacts_list:
+        new_file_path = contact[0]
+        small_pic = contact[1]
+        large_pic = contact[2]
+        id = contact[3]
+        filetype = contact[4]
+        small_images_path = new_file_path + f'contacts\images\small'
+        large_images_path = new_file_path + f'contacts\images\large'
+        x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
+        x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
+        threads.append(x)
+        threads.append(x1)
+        x.start()
+        x1.start()
+    for thread in threads:
+        thread.join()

@@ -94,8 +94,8 @@ def get_filename_from_url(url):
         exit()
 
 
-def create_index_html(output_path, input_path, depth):
-    output_path = get_output_file_path(output_path)
+def create_index_html(args):
+    output_path = get_output_file_path(args.output)
     try:
         template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
         dst_path = output_path + 'report.html'
@@ -105,8 +105,8 @@ def create_index_html(output_path, input_path, depth):
             template_file, features='html.parser')
         new_file = open(dst_path, 'w', encoding='utf-8')
 
-        input_path = get_input_file_path(input_path)
-        html = headers.fill_index_header(html, input_path, depth)
+        input_path = get_input_file_path(args.input)
+        html = headers.fill_index_header(html, input_path, args.depth)
 
         new_file.seek(0)
         new_file.write(html.prettify())
@@ -171,7 +171,7 @@ def get_suspect_id(input_file_path):
                 break
             return auth_id
         else:
-            raise IOError("File not found on given path")
+            raise IOError(input_file_path + " not found")
     except IOError as error:
         print("Error on get_suspect_id(): " + str(error))
         exit()
@@ -179,6 +179,8 @@ def get_suspect_id(input_file_path):
 
 def get_db_path(input_file_path):
     try:
+        if not os.path.exists(input_file_path):
+            raise IOError(str(input_file_path) + " not found")
         suspect_id = get_suspect_id(input_file_path)
         db_file_name = "msys_" + suspect_id + ".db"
         db_path = input_file_path + db_file_name
@@ -189,8 +191,14 @@ def get_db_path(input_file_path):
 
 
 def get_input_file_path(user_path):
-    path = os.path.expandvars(user_path)
-    return path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    try:
+        if not os.path.exists(user_path):
+            raise IOError(str(user_path) + " not found")
+        path = os.path.expandvars(user_path)
+        return path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
+    except IOError as error:
+        print("Error on get_input_file_path(): " + str(error))
+        return
 
 
 def get_output_file_path(path):

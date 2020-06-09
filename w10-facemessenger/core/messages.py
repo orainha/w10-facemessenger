@@ -6,6 +6,7 @@ import json
 import sqlite3
 import copy
 from pathlib import Path
+import threading
 # TODO: (orainha) Remove import requests
 import requests
 
@@ -21,7 +22,6 @@ CONVERSATIONS_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\t
 MESSAGES_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_messages.html')
 NEW_FILE_PATH = ''
 MESSAGES_PATH = ''
-OUTPUT_PATH = ''
 PATH = ''
 DB_PATH = ''
 MSG_FILES_FOLDER_NAME = ''
@@ -72,9 +72,15 @@ class MessagesCollector():
     def __init__(self):
         pass
 
+
+def report_html(depth):
+    report_html_conversations(CONVERSATIONS_TEMPLATE_FILENAME, depth)
+    report_html_messages(MESSAGES_TEMPLATE_FILENAME, depth)
+
+
 def header(html, thread_key, depth):
 
-    ONE_PARTICIPANT_QUERRY = """
+    one_participant_querry = """
         SELECT
             c.profile_picture_url,
             c.name,
@@ -89,7 +95,7 @@ def header(html, thread_key, depth):
     # Connect to database
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute(ONE_PARTICIPANT_QUERRY)
+    c.execute(one_participant_querry)
 
     victim_photo = html.header.find(
     "div", attrs={"id": "victimPhoto"})
@@ -346,7 +352,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
     attachment_filename = fields[7]
     attachment_duration = fields[8]
     depth = fields[9]
-    OUTPUT_PATH = fields[10]
+    output_path = fields[10]
     MSG_FILES_FOLDER_NAME = fields[11]
     
     # An attachment can be:
@@ -404,14 +410,14 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
     elif (depth == "complete"):   
         if "image" in attachment_url_mimetype:
             filetype = utils.get_filetype(attachment_playable_url)
-            extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+            extract_message_file(output_path, attachment_preview_url, attachment_filename, filetype, str(thread_key))
             img_tag = html_doc_new_file.new_tag('img')
             img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
             td_message.append(img_tag)
         elif "audio" in attachment_url_mimetype:
             # Audio filename already has filetype
             filetype = ''
-            extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
+            extract_message_file(output_path, attachment_playable_url, attachment_filename, filetype, str(thread_key))
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
             href_tag['style'] = "color: white"
@@ -420,8 +426,8 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
             td_message.append(href_tag)
         elif "video" in attachment_url_mimetype:
             filetype = utils.get_filetype(attachment_preview_url)
-            extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
-            extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, '', str(thread_key))
+            extract_message_file(output_path, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+            extract_message_file(output_path, attachment_playable_url, attachment_filename, '', str(thread_key))
             img_tag = html_doc_new_file.new_tag('img')
             # Need to add image filetype on this case, filename ends like '.mp4' (not suitable to show an image)
             img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
@@ -433,6 +439,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
             href_tag = html_doc_new_file.new_tag('a')
             # Video filename already has filetype
             href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
+            href_tag['style'] = "color: white"
             href_tag.append(img_tag)
             td_message.append(href_tag)
         else:
@@ -444,13 +451,13 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
                 filetype = utils.get_filetype(attachment_playable_url)
 
             if (attachment_preview_url != 'None'):
-                extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                extract_message_file(output_path, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                 img_tag = html_doc_new_file.new_tag('img')
                 img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                 td_message.append(img_tag)
 
             elif (attachment_playable_url != 'None'):
-                extract_message_file(OUTPUT_PATH, attachment_playable_url, attachment_filename, filetype, str(thread_key))
+                extract_message_file(output_path, attachment_playable_url, attachment_filename, filetype, str(thread_key))
                 p_tag = html_doc_new_file.new_tag('p')
                 p_tag.append(attachment_filename)
                 href_tag = html_doc_new_file.new_tag('a')
@@ -460,7 +467,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
                 td_message.append(href_tag)
     return td_message
 
-    
+
 def report_html_messages(template_path, depth):
 
     # Connect to database
@@ -475,6 +482,7 @@ def report_html_messages(template_path, depth):
     last_attachment_filename = ""
     web_img_url_counter = 0
     button_style_class = "btn btn-outline-light my-2 my-sm-0 fast-button"
+    output_path = NEW_FILE_PATH
     for row in cursor:
         # Query fields
         new_thread_key = row[0]
@@ -550,7 +558,7 @@ def report_html_messages(template_path, depth):
                     attachment_filename,
                     attachment_duration,
                     depth,
-                    OUTPUT_PATH,
+                    output_path,
                     MSG_FILES_FOLDER_NAME
                     ]
                 td_message = html_doc_new_file.new_tag('td')
@@ -582,7 +590,7 @@ def report_html_messages(template_path, depth):
                         td_message.append(a_href_tag)
                     td_message.append(message + " - " + attachment_title + " - " + attachment_subtitle)
                 elif (depth == "complete"):
-                    extract_message_file(OUTPUT_PATH, attachment_preview_url, attachment_filename, filetype, str(thread_key))
+                    extract_message_file(output_path, attachment_preview_url, attachment_filename, filetype, str(thread_key))
                     img_tag = html_doc_new_file.new_tag('img')
                     img_tag['src'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}{filetype}'
                     td_message = html_doc_new_file.new_tag('td')
@@ -686,7 +694,6 @@ def build_conversations_profile_pic(html, participant_pic, participant_contact_i
         button_tag.append('Download Image')
         td_photo.append(button_tag)
     elif (depth == "complete"):
-        extract_images(NEW_FILE_PATH, participant_pic, participant_large_pic, filetype, str(participant_contact_id))
         href_tag = html.new_tag('a')
         href_tag['href'] = f'conversations\images\large\{participant_contact_id}' + filetype
         img_tag = html.new_tag('img')
@@ -728,6 +735,7 @@ def report_html_conversations(template_path, depth):
     div_container_fluid["id"] = "divConversations"
     div_container_fluid["class"] = "container-fluid"
 
+    extract_conversation_list = list()
     for i, row in enumerate(results):
         # Query fields
         participant_pic = str(row[0])
@@ -754,6 +762,10 @@ def report_html_conversations(template_path, depth):
 
         # Table will not be visible, but its needed for csv export
         # td 1 - Profile Pic
+        if (depth == "complete"):
+            filetype = utils.get_filetype(participant_pic)
+            conversation = [NEW_FILE_PATH, participant_pic, participant_large_pic, filetype, str(participant_contact_id)]
+            extract_conversation_list.append(conversation)
         td_photo = html_doc_new_file.new_tag('td')
         td_photo["class"] = "col-md-2 text-right pr-1"
         td_photo = build_conversations_profile_pic(html_doc_new_file, participant_pic, 
@@ -813,6 +825,8 @@ def report_html_conversations(template_path, depth):
     new_file.seek(0)
     new_file.write(html_doc_new_file.prettify())
     new_file.truncate()
+    if (depth == "complete"):
+        extract_images(extract_conversation_list)
 
 
 def report_csv_conversations(delim):
@@ -888,6 +902,11 @@ def report_csv(delim):
     report_csv_messages(delim)
 
 
+def paths(args):
+    input_file_path(args.input)
+    output_file_path(args.output)
+
+
 def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global DB_PATH
@@ -912,21 +931,33 @@ def output_file_path(destination_path):
 
 
 def extract_message_file(path, url, filename, filetype, msg_thread_key):
-    global OUTPUT_PATH
     global MSG_FILES_FOLDER_NAME
-    OUTPUT_PATH = os.path.expandvars(path)
     MSG_FILES_FOLDER_NAME = 'message-files'
-    IMAGES_PATH = OUTPUT_PATH + f'\\{MSG_FILES_FOLDER_NAME}\{msg_thread_key}'
-    utils.extract(path, IMAGES_PATH, url, filename, filetype)
+    images_path = path + f'{MSG_FILES_FOLDER_NAME}\{msg_thread_key}'
+    utils.extract(path, images_path, url, filename, filetype)
 
 
-def extract_images(output_path, small_pic_url, large_pic_url, filetype, filename):
-    global OUTPUT_PATH
-    FILENAME = 'conversations.html'
-    OUTPUT_PATH = os.path.expandvars(output_path)
-    SMALL_IMAGES_PATH = OUTPUT_PATH + f'\conversations\images\small'
-    LARGE_IMAGES_PATH = OUTPUT_PATH + f'\conversations\images\large'
-    FILENAME = OUTPUT_PATH + f'\\{FILENAME}'
+def extract_images(extract_conversation_list):
+    threads = list()
+    for conversation in extract_conversation_list:
+        new_file_path = conversation[0]
+        small_pic = conversation[1]
+        large_pic = conversation[2]
+        filetype = conversation[3]
+        id = conversation[4]
+        small_images_path = new_file_path + f'conversations\images\small'
+        large_images_path = new_file_path + f'conversations\images\large'
+        x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
+        x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
+        threads.append(x)
+        threads.append(x1)
+        x.start()
+        x1.start()
+    for thread in threads:
+        thread.join()
 
-    utils.extract(output_path, SMALL_IMAGES_PATH, small_pic_url, filename, filetype)
-    utils.extract(output_path, LARGE_IMAGES_PATH, large_pic_url, filename, filetype)
+# def extract_images(output_path, small_pic_url, large_pic_url, filetype, filename):
+#     small_images_path = output_path + f'\conversations\images\small'
+#     large_images_path = output_path + f'\conversations\images\large'
+#     utils.extract(output_path, small_images_path, small_pic_url, filename, filetype)
+#     utils.extract(output_path, large_images_path, large_pic_url, filename, filetype)

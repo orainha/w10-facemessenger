@@ -1,10 +1,13 @@
 import os  # XXX (ricardoapl) Remove after refactoring modules
 import argparse
+import threading
 
 import core.contacts
 import core.messages
 import core.images
 import utils.files as utils
+
+from timeit import default_timer as timer
 
 
 # XXX (ricardoapl) Apply PEP8
@@ -23,37 +26,72 @@ def parse_cmdline():
     return args
 
 
-# TODO (ricardoapl) Extract responsibility to modules/classes
-def run(args):
-    core.contacts.input_file_path(args.input)
-    core.contacts.output_file_path(args.output)
-    core.messages.input_file_path(args.input)
-    core.messages.output_file_path(args.output)
+def search_cache_images(args):
+    print("Searching cache files...")
     core.images.input_file_path(args.input)
     core.images.output_file_path(args.output)
-    
+    # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
-    core.images.extract_all(images_path)
+    x = threading.Thread(target=core.images.extract_all, args=(images_path,))
+    x.start()
+    if args.format == 'html':
+        utils.create_web_files(args.output)
+        core.images.report_html(args.depth)
+    elif args.format == 'csv':
+        delim = args.delimiter
+        core.images.report_csv(delim)
+    cwd = os.getcwd()
+    core.images.clean(cwd)
+    x.join()
+
+
+def validate_input_arg(args):
+    try:
+        if not os.path.exists(args.input):
+            raise IOError(args.input + " not found")
+        full_input_path = utils.get_input_file_path(args.input)
+        if not os.path.exists(full_input_path):
+            raise IOError(full_input_path + " not found")
+        db_path = utils.get_db_path(full_input_path)
+        if not os.path.exists(db_path):
+            print("Warning: Database " + db_path + " not found")
+            # If there is no database but file path exists, search cache images
+            search_cache_images(args)
+            exit()
+    except IOError as error:
+        print("Error --input: " + str(error))
+        exit()
+        
+
+# TODO (ricardoapl) Extract responsibility to modules/classes
+def run(args):
+    threads = list()
+    start = timer()
+
+    # Check if input file exists
+    validate_input_arg(args)
+    
+    # XXX (orainha) Simplify? 
+    core.contacts.paths(args)
+    core.messages.paths(args)
+    core.images.paths(args)
+
+    
+    # XXX (orainha) Repeated var image_path on search_cache_images()
+    images_path = core.images.PATH + 'Partitions'
+    images_path = os.path.expandvars(images_path)
+    t = threading.Thread(target=core.images.extract_all, args=(images_path,))
+    threads.append(t)
+    t.start()
     
     if args.format == 'html':
         utils.create_web_files(args.output)
-        # XXX (ricardoapl) Don't other modules make use of DB_PATH?
-        db_path = core.contacts.DB_PATH
-        contacts_template = core.contacts.CONTACTS_TEMPLATE_FILE_PATH
-        core.contacts.report_html(db_path, contacts_template, args.depth)
-        # TODO (ricardoapl) Fill HTML headers for core.contacts
-        conversations_template = core.messages.CONVERSATIONS_TEMPLATE_FILENAME
-        messages_template = core.messages.MESSAGES_TEMPLATE_FILENAME
-        # XXX (ricardoapl) There should be only one core.messages.report_html method to call
-        core.messages.report_html_conversations(conversations_template, args.depth)
-        core.messages.report_html_messages(messages_template, args.depth)
-        # TODO (ricardoapl) Fill HTML headers for core.messages
-        images_template = core.images.TEMPLATE_FILENAME
-        images_report = core.images.NEW_FILE_PATH + core.images.REPORT_FILENAME
-        core.images.report_html(images_template, images_report, args.depth)
+        core.contacts.report_html(args.depth)
+        core.messages.report_html(args.depth)
+        core.images.report_html(args.depth)
         # Create report.html
-        utils.create_index_html(args.output, args.input, args.depth)
+        utils.create_index_html(args)
 
     elif args.format == 'csv':
         delim = args.delimiter
@@ -63,6 +101,12 @@ def run(args):
 
     cwd = os.getcwd()
     core.images.clean(cwd)
+
+    for thread in threads:
+        thread.join()
+
+    end = timer()
+    print("Report processed in " + str(end - start) + " seconds")
 
 
 def main():
