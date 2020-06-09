@@ -955,9 +955,3 @@ def extract_images(extract_conversation_list):
         x1.start()
     for thread in threads:
         thread.join()
-
-# def extract_images(output_path, small_pic_url, large_pic_url, filetype, filename):
-#     small_images_path = output_path + f'\conversations\images\small'
-#     large_images_path = output_path + f'\conversations\images\large'
-#     utils.extract(output_path, small_images_path, small_pic_url, filename, filetype)
-#     utils.extract(output_path, large_images_path, large_pic_url, filename, filetype)

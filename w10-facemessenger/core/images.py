@@ -62,8 +62,6 @@ def extract_all(path):
             x = threading.Thread(target=extract_entry, args=(entry, prefix, suffix,))
             threads.append(x)
             x.start()
-        # for thread in threads:
-        #     thread.start()
         for thread in threads:
             thread.join()
 

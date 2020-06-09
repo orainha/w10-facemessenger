@@ -7,6 +7,7 @@ import sqlite3
 # TODO (orainha) Fix requests import!
 import requests
 import threading 
+# XXX (orainha) How to use "threading" word here?
 from threading import * 
 
 from bs4 import BeautifulSoup
@@ -66,7 +67,6 @@ def report_html(depth):
             contact_phone = "No Phone"
         if contact_email == 'None':
             contact_email = "No Email"
-        threads = list()
         try:
             tr_tag = html_doc_new_file.new_tag('tr')
             # td 1
