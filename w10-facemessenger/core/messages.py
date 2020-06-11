@@ -23,7 +23,6 @@ MESSAGES_TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templa
 NEW_FILE_PATH = ''
 MESSAGES_PATH = ''
 PATH = ''
-DB_PATH = ''
 MSG_FILES_FOLDER_NAME = ''
 
 CONVERSATIONS_QUERRY = """
@@ -93,7 +92,8 @@ def header(html, thread_key, depth):
         WHERE p.thread_key = """ + str(thread_key)
 
     # Connect to database
-    conn = sqlite3.connect(DB_PATH)
+    db_path = utils.get_db_path(PATH)
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute(one_participant_querry)
 
@@ -471,7 +471,8 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
 def report_html_messages(template_path, depth):
 
     # Connect to database
-    conn = sqlite3.connect(DB_PATH)
+    db_path = utils.get_db_path(PATH)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(MESSAGES_PER_CONVERSATION_QUERRY)
     # Variable initialization
@@ -715,7 +716,8 @@ def build_conversations_name(html_doc_new_file, thread_key, participant_name, di
 
 def report_html_conversations(template_path, depth):
     # Connect to database
-    conn = sqlite3.connect(DB_PATH)
+    db_path = utils.get_db_path(PATH)
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute(CONVERSATIONS_QUERRY)
     results = c.fetchall()
@@ -831,7 +833,8 @@ def report_html_conversations(template_path, depth):
 
 def report_csv_conversations(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
-    with sqlite3.connect(DB_PATH) as connection:
+    db_path = utils.get_db_path(PATH)
+    with sqlite3.connect(db_path) as connection:
         cursor = connection.cursor()
         cursor.execute(CONVERSATIONS_QUERRY)
         rows = cursor.fetchall()
@@ -857,7 +860,8 @@ def report_csv_conversations(delim):
 
 def report_csv_messages(delim):
     # XXX (ricardoapl) Remove reference to DB_PATH?
-    with sqlite3.connect(DB_PATH) as connection:
+    db_path = utils.get_db_path(PATH)
+    with sqlite3.connect(db_path) as connection:
         cursor = connection.cursor()
         cursor.execute(THREADS_QUERY)
         thread_rows = cursor.fetchall()
@@ -909,10 +913,8 @@ def paths(args):
 
 def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
-    global DB_PATH
     global PATH
     PATH = utils.get_input_file_path(user_path)
-    DB_PATH = utils.get_db_path(PATH)
 
 
 def output_file_path(destination_path):

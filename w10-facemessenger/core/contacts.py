@@ -171,22 +171,26 @@ def output_file_path(destination_path):
 def extract_images(extract_contacts_list):
     small_images_path = NEW_FILE_PATH + f'contacts\images\small'
     large_images_path = NEW_FILE_PATH + f'contacts\images\large'
-    if not os.path.exists(small_images_path):
-        os.makedirs(small_images_path)
-    if not os.path.exists(large_images_path):
-        os.makedirs(large_images_path)
-    threads = list()
-    for contact in extract_contacts_list:
-        new_file_path = contact[0]
-        small_pic = contact[1]
-        large_pic = contact[2]
-        id = contact[3]
-        filetype = contact[4]
-        x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
-        x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
-        threads.append(x)
-        threads.append(x1)
-        x.start()
-        x1.start()
-    for thread in threads:
-        thread.join()
+    try:
+        if not os.path.exists(small_images_path):
+            os.makedirs(small_images_path)
+        if not os.path.exists(large_images_path):
+            os.makedirs(large_images_path)
+        threads = list()
+        for contact in extract_contacts_list:
+            new_file_path = contact[0]
+            small_pic = contact[1]
+            large_pic = contact[2]
+            id = contact[3]
+            filetype = contact[4]
+            x = threading.Thread(target=utils.extract, args=(new_file_path, small_images_path, small_pic, id, filetype,))
+            x1 = threading.Thread(target=utils.extract, args=(new_file_path, large_images_path, large_pic, id, filetype,))
+            threads.append(x)
+            threads.append(x1)
+            x.start()
+            x1.start()
+        for thread in threads:
+            thread.join()
+    except IOError as error:
+        print(error)
+

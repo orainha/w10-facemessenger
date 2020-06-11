@@ -15,7 +15,6 @@ import threading
 TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_images.html')
 REPORT_FILENAME = 'report_images.html'
 NEW_FILE_PATH = ''
-IMAGES_PATH = ''
 PATH = ''
 
 
@@ -102,6 +101,7 @@ def append_html(data, html, depth):
     tbody = html.tbody
     previous_filename = ''
     extract_images_list = list()
+    new_file_path = NEW_FILE_PATH
     for datum in data:
         profile_tag = html.new_tag('td')
         profile_tag.string = datum['profile']
@@ -125,7 +125,7 @@ def append_html(data, html, depth):
             image_tag.append(button_tag)
         elif (depth == "complete"):
             url = datum['url']
-            image = [NEW_FILE_PATH, url, filename, filetype]
+            image = [new_file_path, url, filename, filetype]
             extract_images_list.append(image)
             # Show on html
             img_tag = html.new_tag('img')
@@ -210,37 +210,34 @@ def paths(args):
 
 def input_file_path(path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
+    # XXX (orainha) Where is PATH used?
     global PATH
-    # PATH = path + f'\AppData\Local\Packages\Facebook.FacebookMessenger_8xx8rvfyw5nnt\LocalState\\'
     PATH = utils.get_input_file_path(path)
 
 
 def output_file_path(path):
     global NEW_FILE_PATH
-    global IMAGES_PATH
     NEW_FILE_PATH = utils.get_output_file_path(path)
-    IMAGES_PATH = NEW_FILE_PATH + "images-search\\"
-    try:
-        if not os.path.exists(IMAGES_PATH):
-            os.makedirs(IMAGES_PATH)
-    except IOError as error:
-        print(error)
-        sys.exit()
 
 
 def extract_image(extract_images_list):
-    images_path = IMAGES_PATH
-    threads = list()
-    for image in extract_images_list:
-        new_file_path = image[0]
-        url = image[1]
-        filename = image[2]
-        filetype = image[3]
-        x = threading.Thread(target=utils.extract, args=(new_file_path, images_path, url, filename, filetype,))
-        threads.append(x)
-        x.start()
-    for thread in threads:
-        thread.join()
+    images_path = NEW_FILE_PATH + "images-search\\"
+    try:
+        if not os.path.exists(images_path):
+            os.makedirs(images_path)
+        threads = list()
+        for image in extract_images_list:
+            new_file_path = image[0]
+            url = image[1]
+            filename = image[2]
+            filetype = image[3]
+            x = threading.Thread(target=utils.extract, args=(new_file_path, images_path, url, filename, filetype,))
+            threads.append(x)
+            x.start()
+        for thread in threads:
+            thread.join()
+    except IOError as error:
+        print(error)
 
 
 
