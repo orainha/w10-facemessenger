@@ -21,7 +21,7 @@ def replace_by_default(output_path, file_path, filename, filetype):
                         '\\' + filename + filetype)
     except IOError as error:
         print("Error on replace_by_default(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def check_internet_connection(host='http://google.com'):
@@ -35,7 +35,7 @@ def check_internet_connection(host='http://google.com'):
 def extract(output_path, file_path, url, filename, filetype):
     if (not check_internet_connection()):
         print("Warning: Internet connection is required for images display")
-        exit()
+        sys.exit()
     try:
         # Create diretory if not exists
         if not os.path.exists(file_path):
@@ -73,7 +73,7 @@ def get_filetype(file_url):
         return filetype
     except OSError as error:
         print("Error on get_filetype(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def get_filename_from_url(url):
@@ -91,7 +91,7 @@ def get_filename_from_url(url):
         return filename
     except OSError as error:
         print("Error on get_filename_from_url(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def create_index_html(args):
@@ -115,7 +115,7 @@ def create_index_html(args):
         # shutil.copy2(template_index_path, dst_path)
     except OSError as error:
         print("Error on create_index_html(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def create_js_css(output_path):
@@ -174,7 +174,7 @@ def get_suspect_id(input_file_path):
             raise IOError(input_file_path + " not found")
     except IOError as error:
         print("Error on get_suspect_id(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def get_db_path(input_file_path):
@@ -187,7 +187,7 @@ def get_db_path(input_file_path):
         return db_path
     except IOError as error:
         print("Error on get_db_path(): " + str(error))
-        exit()
+        sys.exit()
 
 
 def get_input_file_path(user_path):
@@ -212,5 +212,5 @@ def get_output_file_path(path):
         return new_path
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
     

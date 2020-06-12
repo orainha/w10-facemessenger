@@ -1,4 +1,5 @@
-import os  # XXX (ricardoapl) Remove after refactoring modules
+import os
+import sys
 import argparse
 import threading
 
@@ -19,7 +20,6 @@ def parse_cmdline():
     parser.add_argument('--output', default=r'%USERPROFILE%\Desktop', help='set output directory for report (defaults to Desktop)')
     parser.add_argument('--format', choices=['html', 'csv'], default='html', help='choose report format (defaults to "html")')
     parser.add_argument('--delimiter', choices=[',', '»', '«'], default=',', help='specify csv report delimiter (defaults to ",")')
-    # TODO (ricardoapl) Add argument for downloads
     # TODO (orainha) Need to write better 'help'
     parser.add_argument('--depth', choices=['fast', 'complete'], default='fast', help='fast: no images, no internet required; complete: with images, internet required, slower')
     args = parser.parse_args()
@@ -47,6 +47,8 @@ def search_cache_images(args):
 
 
 def validate_input_arg(args):
+    # XXX (ricardoapl) This method is not responsible for execution, only validation!
+    # XXX (ricardoapl) Why raise exceptions only to catch afterwards?
     try:
         if not os.path.exists(args.input):
             raise IOError(args.input + " not found")
@@ -58,10 +60,10 @@ def validate_input_arg(args):
             print("Warning: Database " + db_path + " not found")
             # If there is no database but file path exists, search cache images
             search_cache_images(args)
-            exit()
+            sys.exit()
     except IOError as error:
         print("Error --input: " + str(error))
-        exit()
+        sys.exit()
         
 
 # TODO (ricardoapl) Extract responsibility to modules/classes
@@ -76,7 +78,6 @@ def run(args):
     core.contacts.paths(args)
     core.messages.paths(args)
     core.images.paths(args)
-
     
     # XXX (orainha) Repeated var image_path on search_cache_images()
     images_path = core.images.PATH + 'Partitions'
@@ -90,7 +91,6 @@ def run(args):
         core.contacts.report_html(args.depth)
         core.messages.report_html(args.depth)
         core.images.report_html(args.depth)
-        # Create report.html
         utils.create_index_html(args)
 
     elif args.format == 'csv':
