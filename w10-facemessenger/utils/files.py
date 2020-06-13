@@ -1,4 +1,5 @@
 import os 
+import sys
 import requests
 import shutil
 import json
@@ -94,8 +95,8 @@ def get_filename_from_url(url):
         exit()
 
 
-def create_index_html(args):
-    output_path = get_output_file_path(args.output)
+def create_index_html(args, suspect):
+    output_path = get_output_file_path(args.output, suspect)
     try:
         template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
         dst_path = output_path + 'report.html'
@@ -105,8 +106,7 @@ def create_index_html(args):
             template_file, features='html.parser')
         new_file = open(dst_path, 'w', encoding='utf-8')
 
-        input_path = get_input_file_path(args.input)
-        html = headers.fill_index_header(html, input_path, args.depth)
+        html = headers.fill_index_header(html, suspect, args.depth)
 
         new_file.seek(0)
         new_file.write(html.prettify())
@@ -118,8 +118,8 @@ def create_index_html(args):
         exit()
 
 
-def create_js_css(output_path):
-    output_path = get_output_file_path(output_path)
+def create_js_css(output_path, suspect):
+    output_path = get_output_file_path(output_path, suspect)
     try:
         if not os.path.exists(output_path + "\js"):
             os.makedirs(output_path + "\js")
@@ -138,8 +138,8 @@ def create_js_css(output_path):
         print("Error on create_js_css(): " + str(error))
 
 
-def create_image_files(output_path):
-    output_path = get_output_file_path(output_path)
+def create_image_files(output_path, suspect):
+    output_path = get_output_file_path(output_path, suspect)
     try:
         #create /images if not exists
         images_path = output_path + "\images"
@@ -154,22 +154,22 @@ def create_image_files(output_path):
         print(error)
 
 
-def create_web_files(output_path):
-    create_image_files(output_path)
-    create_js_css(output_path)
+def create_web_files(output_path, suspect):
+    create_image_files(output_path, suspect)
+    create_js_css(output_path, suspect)
 
 
-def get_suspect_id(input_file_path):
+def get_suspect_ids(input_file_path):
+    #auth_id poderá ser um array (se tiver mais elementos, tratá-lo de modo diferente)
     try:
         if os.path.exists(input_file_path):
-            auth_id = 0
+            auth_ids = []
             f_data = open(input_file_path + 'data', 'r')
             data = json.load(f_data)
             for item in data:
                 txt = item.split(":")
-                auth_id = txt[1]
-                break
-            return auth_id
+                auth_ids.append(txt[1])
+            return auth_ids
         else:
             raise IOError(input_file_path + " not found")
     except IOError as error:
@@ -177,11 +177,10 @@ def get_suspect_id(input_file_path):
         exit()
 
 
-def get_db_path(input_file_path):
+def get_suspect_db_path(input_file_path, suspect_id):
     try:
         if not os.path.exists(input_file_path):
             raise IOError(str(input_file_path) + " not found")
-        suspect_id = get_suspect_id(input_file_path)
         db_file_name = "msys_" + suspect_id + ".db"
         db_path = input_file_path + db_file_name
         return db_path
@@ -201,9 +200,9 @@ def get_input_file_path(user_path):
         return
 
 
-def get_output_file_path(path):
+def get_output_file_path(path, suspect):
     path = os.path.expandvars(path)
-    new_path = path + "\\report\\"
+    new_path = path + f"\\report\{suspect.id}\\"
     try:
         if not os.path.exists(path):
             raise IOError("Error: Given destination output path not found :" + path)
@@ -212,5 +211,23 @@ def get_output_file_path(path):
         return new_path
     except IOError as error:
         print(error)
-        exit()
+        sys.exit()
+    
+
+def has_database(args, db_path):
+    try:
+        if not os.path.exists(args.input):
+            raise IOError(args.input + " not found")
+        full_input_path = get_input_file_path(args.input)
+        if not os.path.exists(full_input_path):
+            raise IOError(full_input_path + " not found")
+        if not os.path.exists(db_path):
+            return False
+        else:
+            return True
+    except IOError as error:
+        print("Error --input: " + str(error))
+        sys.exit()
+        
+
     

@@ -1,10 +1,14 @@
 import os  # XXX (ricardoapl) Remove after refactoring modules
 import argparse
 import threading
+import sqlite3
 
 import core.contacts
 import core.messages
 import core.images
+import core.undark
+import models.suspect
+
 import utils.files as utils
 
 from timeit import default_timer as timer
@@ -26,17 +30,20 @@ def parse_cmdline():
     return args
 
 
-def search_cache_images(args):
+def search_cache_images(args, suspect_id):
     print("Searching cache files...")
-    core.images.input_file_path(args.input)
-    core.images.output_file_path(args.output)
+    # XXX (orainha) Find better way to pass a suspect instance just because the id
+    class TempSuspect:
+        def __init__(self, id):
+            self.id = id
+    temp_suspect = TempSuspect(suspect_id)
+    core.images.paths(args, temp_suspect)
     # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
     x = threading.Thread(target=core.images.extract_all, args=(images_path,))
     x.start()
     if args.format == 'html':
-        utils.create_web_files(args.output)
         core.images.report_html(args.depth)
     elif args.format == 'csv':
         delim = args.delimiter
@@ -46,64 +53,64 @@ def search_cache_images(args):
     x.join()
 
 
-def validate_input_arg(args):
-    try:
-        if not os.path.exists(args.input):
-            raise IOError(args.input + " not found")
-        full_input_path = utils.get_input_file_path(args.input)
-        if not os.path.exists(full_input_path):
-            raise IOError(full_input_path + " not found")
-        db_path = utils.get_db_path(full_input_path)
-        if not os.path.exists(db_path):
-            print("Warning: Database " + db_path + " not found")
-            # If there is no database but file path exists, search cache images
-            search_cache_images(args)
-            exit()
-    except IOError as error:
-        print("Error --input: " + str(error))
-        exit()
-        
-
 # TODO (ricardoapl) Extract responsibility to modules/classes
 def run(args):
     threads = list()
     start = timer()
 
-    # Check if input file exists
-    validate_input_arg(args)
-    
-    # XXX (orainha) Simplify? 
-    core.contacts.paths(args)
-    core.messages.paths(args)
-    core.images.paths(args)
+    # Get existing suspect accounts
+    suspect_ids = []
+    input_file_path = utils.get_input_file_path(args.input)
+    suspect_ids = utils.get_suspect_ids(input_file_path)
 
-    
-    # XXX (orainha) Repeated var image_path on search_cache_images()
-    images_path = core.images.PATH + 'Partitions'
-    images_path = os.path.expandvars(images_path)
-    t = threading.Thread(target=core.images.extract_all, args=(images_path,))
-    threads.append(t)
-    t.start()
-    
-    if args.format == 'html':
-        utils.create_web_files(args.output)
-        core.contacts.report_html(args.depth)
-        core.messages.report_html(args.depth)
-        core.images.report_html(args.depth)
-        # Create report.html
-        utils.create_index_html(args)
+    #Create report for each id
+    for id in suspect_ids:
+        # Validate database existence
+        db_path = utils.get_suspect_db_path(input_file_path, id)
+        if not utils.has_database(args, db_path):
+            # If there is no database but file path exists, search cache images
+            print("Warning: Database " + db_path + " not found")
+            search_cache_images(args, id)
+            continue
+        
+        # Create suspect instance
+        suspect = models.suspect.create_suspect(id, input_file_path)
+        
 
-    elif args.format == 'csv':
-        delim = args.delimiter
-        core.contacts.report_csv(delim)
-        core.messages.report_csv(delim)
-        core.images.report_csv(delim)
+        # Set modules paths 
+        core.contacts.paths(args, suspect)
+        core.messages.paths(args, suspect)
+        core.images.paths(args, suspect)
+        core.undark.paths(args, suspect)
 
-    cwd = os.getcwd()
-    core.images.clean(cwd)
 
-    for thread in threads:
-        thread.join()
+        # XXX (orainha) Repeated var image_path on search_cache_images()
+        images_path = core.images.PATH + 'Partitions'
+        images_path = os.path.expandvars(images_path)
+        t = threading.Thread(target=core.images.extract_all, args=(images_path,))
+        threads.append(t)
+        t.start()
+        
+        if args.format == 'html':
+            utils.create_web_files(args.output, suspect)
+            core.contacts.report_html(args.depth)
+            core.messages.report_html(args.depth)
+            core.images.report_html(args.depth)
+            # Create report.html
+            utils.create_index_html(args, suspect)
+
+        elif args.format == 'csv':
+            delim = args.delimiter
+            core.contacts.report_csv(delim)
+            core.messages.report_csv(delim)
+            core.images.report_csv(delim)
+            core.undark.report_csv(delim)
+
+        cwd = os.getcwd()
+        core.images.clean(cwd)
+
+        for thread in threads:
+            thread.join()
 
     end = timer()
     print("Report processed in " + str(end - start) + " seconds")
