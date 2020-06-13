@@ -1,14 +1,12 @@
 import os
-import sys
 import subprocess
+import threading
 import csv
 import json
+
 import bs4
-import requests
-import shutil
 
 import utils.files as utils
-import threading
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
@@ -22,8 +20,6 @@ class ImagesCollector():
     def __init__(self):
         pass
 
-def test(self, path):
-    print (path)
 
 # XXX (ricardoapl) Improve docstring according to PEP8
 def extract_one(src, dst):
@@ -41,11 +37,13 @@ def extract_one(src, dst):
     ]
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
+
 def extract_entry(entry, prefix, suffix):
     if entry.is_dir():
         filename = f'{prefix}-{suffix}'
         extract_one(entry, filename)
         suffix += 1
+
 
 # XXX (ricardoapl) Add destination path/file argument?
 # XXX (ricardoapl) Improve docstring according to PEP8
@@ -63,9 +61,6 @@ def extract_all(path):
             x.start()
         for thread in threads:
             thread.join()
-
-
-
 
 
 def clean(path):
@@ -238,6 +233,3 @@ def extract_image(extract_images_list):
             thread.join()
     except IOError as error:
         print(error)
-
-
-

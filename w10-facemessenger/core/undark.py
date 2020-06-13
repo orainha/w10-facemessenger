@@ -1,19 +1,8 @@
 import os
-import sys
-import subprocess
-import csv
-import json
-import bs4
-import requests
-import shutil
 
 import utils.files as utils
-import threading
 
 
-# XXX (ricardoapl) Fix this non-pythonic mess!
-# TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_images.html')
-# REPORT_FILENAME = 'report_images.html'
 NEW_FILE_PATH = ''
 PATH = ''
 
@@ -28,7 +17,7 @@ def report_csv(delim):
     dst_path = dst_path + filename
     db_path = utils.get_db_path(input_path)
     undark = os.path.join(os.path.dirname(__file__), '..\\undark.exe')
-    with open(dst_path,'w') as f:
+    with open(dst_path, 'w') as f:
         args = [
             undark,
             '-i', db_path,
@@ -37,6 +26,7 @@ def report_csv(delim):
             # '--removed-only',
         ]
         subprocess.Popen(args,stdout=f)
+
 
 def paths(args):
     input_file_path(args.input)
@@ -53,6 +43,3 @@ def input_file_path(path):
 def output_file_path(path):
     global NEW_FILE_PATH
     NEW_FILE_PATH = utils.get_output_file_path(path)
-
-
-

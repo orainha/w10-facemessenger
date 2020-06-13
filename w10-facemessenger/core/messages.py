@@ -1,18 +1,13 @@
 import os
 import sys
+import threading
 import shutil
 import csv
-import json
 import sqlite3
 import copy
 from pathlib import Path
-import threading
-# TODO: (orainha) Remove import requests
-import requests
 
 from bs4 import BeautifulSoup
-
-from core.headers import fill_header
 
 import utils.files as utils
 
@@ -24,7 +19,6 @@ NEW_FILE_PATH = ''
 MESSAGES_PATH = ''
 PATH = ''
 MSG_FILES_FOLDER_NAME = ''
-
 CONVERSATIONS_QUERRY = """
     SELECT
         c.profile_picture_url,
@@ -36,7 +30,6 @@ CONVERSATIONS_QUERRY = """
     FROM participants as p 
     JOIN contacts as c ON c.id = p.contact_id
 """
-
 MESSAGES_PER_CONVERSATION_QUERRY = """
     SELECT
         m.thread_key,
@@ -212,7 +205,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     message = html_doc_new_file.new_tag('td')
     # Must copy td_message to can use on both div and table
     message = copy.copy(td_message)
-    if(suspect_contact_id == sender_id):
+    if (suspect_contact_id == sender_id):
         div_message_content["id"] = "divMessageContentSuspect"
         div_message_content["class"] = suspect_element_style_color
     else:
@@ -222,7 +215,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_message.append(div_message_content)
     div_empty = html_doc_new_file.new_tag('div')
     div_empty["class"] = "col"
-    if(suspect_contact_id == sender_id):
+    if (suspect_contact_id == sender_id):
         div_row_message.append(div_empty)
         div_row_message.append(div_message)
     else:
@@ -233,7 +226,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_row_datetime = html_doc_new_file.new_tag('div')
     div_row_datetime["class"] = "row"
     div_datetime = html_doc_new_file.new_tag('div')
-    if(suspect_contact_id == sender_id):
+    if (suspect_contact_id == sender_id):
         div_datetime["class"] = suspect_element_style
     else:
         div_datetime["class"] = victim_element_style
@@ -244,7 +237,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_datetime.append(small_datetime)
     div_empty = html_doc_new_file.new_tag('div')
     div_empty["class"] = "col"
-    if(suspect_contact_id == sender_id):
+    if (suspect_contact_id == sender_id):
         div_row_datetime.append(div_empty)
         div_row_datetime.append(div_datetime)
     else:
@@ -284,10 +277,8 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
     div_victim["id"] = "divVictim"
     div_victim["class"] = "col mt-3"
 
-
-
     if (suspect_contact_id == sender_id):
-        #Avoid all message content repeat just because multiple reactions
+        # Avoid all message content repeat just because multiple reactions
         if last_message_id != message_id:
             # Avoid sender name repeat
             if last_sender != sender_id:
@@ -305,7 +296,7 @@ def create_modern_message_style(html_doc_new_file, fields, div_container_fluid):
         div_row_w100_suspect.append(div_suspect)
         div_container_fluid_row.append(div_row_w100_suspect)
     else:
-        #Avoid all message content repeat just because multiple reactions
+        # Avoid all message content repeat just because multiple reactions
         if last_message_id != message_id:
             # Avoid sender name repeat
             if last_sender != sender_id:
@@ -363,14 +354,11 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
 
     # XXX (orainha) O que é xma_rtc?
     if attachment_type == "xma_rtc_ended_video":
-        td_message.append(
-            "Ended " + attachment_title + " - " + attachment_subtitle)
+        td_message.append("Ended " + attachment_title + " - " + attachment_subtitle)
     elif attachment_type == "xma_rtc_missed_video":
-        td_message.append(attachment_title +
-                            " at " + attachment_subtitle)
+        td_message.append(attachment_title + " at " + attachment_subtitle)
     elif "xma_rtc" in attachment_type:
-        td_message.append(attachment_title +
-                            " - " + attachment_subtitle)
+        td_message.append(attachment_title + " - " + attachment_subtitle)
     # If it hasn't "xma_rtc", it would be something else
     if (depth == "fast"):
         if "image" in attachment_url_mimetype:
@@ -421,8 +409,7 @@ def handle_empty_messages(html_doc_new_file, fields, td_message):
             href_tag = html_doc_new_file.new_tag('a')
             href_tag['href'] = f'..\{MSG_FILES_FOLDER_NAME}\{str(thread_key)}\{attachment_filename}'
             href_tag['style'] = "color: white"
-            href_tag.append(
-                "Audio - " + attachment_title + " - " + attachment_subtitle)
+            href_tag.append("Audio - " + attachment_title + " - " + attachment_subtitle)
             td_message.append(href_tag)
         elif "video" in attachment_url_mimetype:
             filetype = utils.get_filetype(attachment_preview_url)
@@ -603,13 +590,12 @@ def report_html_messages(template_path, depth):
                 td_message = html_doc_new_file.new_tag('td')
                 td_message.append(message)
 
-
-            #New style
+            # New style
 
             suspect_contact_id = utils.get_suspect_id(PATH)
 
             div_container_fluid = html_doc_new_file.new_tag('div')
-            if(suspect_contact_id == sender_id):
+            if (suspect_contact_id == sender_id):
                 div_container_fluid["class"] = "container-fluid w-80 mr-5"
             else:
                 div_container_fluid["class"] = "container-fluid w-80 ml-5"
@@ -638,7 +624,7 @@ def report_html_messages(template_path, depth):
             
             html_doc_new_file.table.insert_before(div_container_fluid)
 
-            #Old Style                
+            # Old Style                
 
             tr_tag = html_doc_new_file.new_tag('tr')
 
@@ -832,7 +818,6 @@ def report_html_conversations(template_path, depth):
 
 
 def report_csv_conversations(delim):
-    # XXX (ricardoapl) Remove reference to DB_PATH?
     db_path = utils.get_db_path(PATH)
     with sqlite3.connect(db_path) as connection:
         cursor = connection.cursor()
@@ -859,7 +844,6 @@ def report_csv_conversations(delim):
 
 
 def report_csv_messages(delim):
-    # XXX (ricardoapl) Remove reference to DB_PATH?
     db_path = utils.get_db_path(PATH)
     with sqlite3.connect(db_path) as connection:
         cursor = connection.cursor()

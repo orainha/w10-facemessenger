@@ -1,10 +1,10 @@
-import hashlib
 import datetime
-import os
+import hashlib
 import sqlite3
-import utils.files as utils
 
 import bs4
+
+import utils.files as utils
 
 
 def fill_index_header(html, input_file_path, depth):
@@ -45,8 +45,6 @@ def fill_index_header(html, input_file_path, depth):
     div_logo.append(img_logo)
 
     # HASH
-
-
     filename = db_path
     hashsum = sha256sum(db_path)
     timezone = datetime.timezone.utc
@@ -122,9 +120,7 @@ def fill_index_header(html, input_file_path, depth):
     div_hash.append(div_hash_row_2)
     div_hash.append(div_hash_row_3)
 
-
     # SUSPECT
-
     div_suspect = html.new_tag("div")
     div_suspect["class"] = "col-xl-3"
     div_suspect_row = html.new_tag("div")
@@ -168,8 +164,6 @@ def fill_index_header(html, input_file_path, depth):
     html.header.append(div_container_fluid)
 
     return html
-
-
 
 
 def fill_header(src_filename, dst_filename):

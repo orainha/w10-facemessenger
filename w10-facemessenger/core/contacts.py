@@ -1,21 +1,13 @@
 import os
-import sys
-import shutil
 import csv
-import json
 import sqlite3
-# TODO (orainha) Fix requests import!
-import requests
 import threading 
 # XXX (orainha) How to use "threading" word here?
 from threading import * 
 
 from bs4 import BeautifulSoup
 
-from core.headers import fill_header
-
 import utils.files as utils
-
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
@@ -152,9 +144,11 @@ def report_csv(delim):
         writer.writerow(columns)
         writer.writerows(rows)
 
+
 def paths(args):
     input_file_path(args.input)
     output_file_path(args.output)
+
 
 def input_file_path(user_path):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
@@ -167,6 +161,7 @@ def input_file_path(user_path):
 def output_file_path(destination_path):
     global NEW_FILE_PATH
     NEW_FILE_PATH = utils.get_output_file_path(destination_path)
+
 
 def extract_images(extract_contacts_list):
     small_images_path = NEW_FILE_PATH + f'contacts\images\small'
@@ -193,4 +188,3 @@ def extract_images(extract_contacts_list):
             thread.join()
     except IOError as error:
         print(error)
-
