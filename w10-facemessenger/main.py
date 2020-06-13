@@ -6,6 +6,7 @@ import threading
 import core.contacts
 import core.messages
 import core.images
+import core.undark
 import utils.files as utils
 
 from timeit import default_timer as timer
@@ -78,6 +79,8 @@ def run(args):
     core.contacts.paths(args)
     core.messages.paths(args)
     core.images.paths(args)
+    core.undark.paths(args)
+
     
     # XXX (orainha) Repeated var image_path on search_cache_images()
     images_path = core.images.PATH + 'Partitions'
@@ -98,6 +101,7 @@ def run(args):
         core.contacts.report_csv(delim)
         core.messages.report_csv(delim)
         core.images.report_csv(delim)
+        core.undark.report_csv(delim)
 
     cwd = os.getcwd()
     core.images.clean(cwd)
