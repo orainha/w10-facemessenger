@@ -41,11 +41,6 @@ def extract_one(src, dst):
     ]
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
-def extract_entry(entry, prefix, suffix):
-    if entry.is_dir():
-        filename = f'{prefix}-{suffix}'
-        extract_one(entry, filename)
-        suffix += 1
 
 # XXX (ricardoapl) Add destination path/file argument?
 # XXX (ricardoapl) Improve docstring according to PEP8
