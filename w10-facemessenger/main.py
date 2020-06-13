@@ -103,11 +103,11 @@ def run(args):
         core.images.report_csv(delim)
         core.undark.report_csv(delim)
 
-    cwd = os.getcwd()
-    core.images.clean(cwd)
-
     for thread in threads:
         thread.join()
+    
+    cwd = os.getcwd()
+    core.images.clean(cwd)
 
     end = timer()
     print("Report processed in " + str(end - start) + " seconds")

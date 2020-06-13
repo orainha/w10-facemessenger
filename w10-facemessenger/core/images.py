@@ -41,11 +41,6 @@ def extract_one(src, dst):
     ]
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
-def extract_entry(entry, prefix, suffix):
-    if entry.is_dir():
-        filename = f'{prefix}-{suffix}'
-        extract_one(entry, filename)
-        suffix += 1
 
 # XXX (ricardoapl) Add destination path/file argument?
 # XXX (ricardoapl) Improve docstring according to PEP8
@@ -58,9 +53,12 @@ def extract_all(path):
     threads = list()
     with os.scandir(path) as entries:
         for entry in entries:
-            x = threading.Thread(target=extract_entry, args=(entry, prefix, suffix,))
-            threads.append(x)
-            x.start()
+            if entry.is_dir():
+                filename = f'{prefix}-{suffix}'
+                x = threading.Thread(target=extract_one, args=(entry, filename))
+                threads.append(x)
+                suffix += 1
+                x.start()
         for thread in threads:
             thread.join()
 
