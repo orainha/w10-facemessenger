@@ -1,18 +1,33 @@
 import hashlib
 import datetime
 import os
+import sqlite3
 import utils.files as utils
 
 import bs4
 
 
-def fill_index_header(html, suspect, depth):
+def fill_index_header(html, input_file_path, suspect_id, depth):
 
-    suspect_id = suspect.id
-    name = suspect.name
-    small_pic = suspect.get_small_pic()
-    large_pic = suspect.get_large_pic()
-    db_path = suspect.get_db_path()
+    SUSPECT_QUERRY = """
+        SELECT
+            profile_picture_url,
+            name,
+            profile_picture_large_url 
+        FROM contacts
+        WHERE id = """ + str(suspect_id)
+
+    db_path = utils.get_suspect_db_path(input_file_path, suspect_id)
+
+    # Connect to database
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute(SUSPECT_QUERRY)
+
+    for row in c:
+        small_pic = str(row[0])
+        name = str(row[1])
+        large_pic = str(row[2])
 
     div_container_fluid = html.new_tag("div")
     div_container_fluid["class"] = "container-fluid"

@@ -25,7 +25,7 @@ MESSAGES_PATH = ''
 PATH = ''
 DB_PATH = ''
 MSG_FILES_FOLDER_NAME = ''
-SUSPECT = ''
+SUSPECT_ID = ''
 
 CONVERSATIONS_QUERRY = """
     SELECT
@@ -110,8 +110,7 @@ def header(html, thread_key, depth):
     div_row_name = html.new_tag('div')
     div_row_name["class"] = "row"
 
-    suspect = SUSPECT
-    suspect_id = suspect.id
+    suspect_id = SUSPECT_ID
 
     for row in c:
         pic_url = str(row[0])
@@ -609,8 +608,7 @@ def report_html_messages(template_path, depth):
 
             #New style
 
-            suspect = SUSPECT
-            suspect_contact_id = suspect.id
+            suspect_contact_id = SUSPECT_ID
 
             div_container_fluid = html_doc_new_file.new_tag('div')
             if(suspect_contact_id == sender_id):
@@ -735,8 +733,7 @@ def report_html_conversations(template_path, depth):
 
     # Variable initialization
     thread_key = 0
-    suspect = SUSPECT
-    suspect_contact_id = suspect.id
+    suspect_contact_id = SUSPECT_ID
 
     div_container_fluid = html_doc_new_file.new_tag('div')
     div_container_fluid["id"] = "divConversations"
@@ -911,25 +908,26 @@ def report_csv(delim):
     report_csv_messages(delim)
 
 
-def paths(args, suspect):
-    input_file_path(args.input, suspect)
-    output_file_path(args.output, suspect)
+def paths(args, suspect_id):
+    input_file_path(args.input, suspect_id)
+    output_file_path(args.output, suspect_id)
 
 
-def input_file_path(user_path, suspect):
+def input_file_path(user_path, suspect_id):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
     global DB_PATH
-    global SUSPECT
+    global SUSPECT_ID
+    SUSPECT_ID = suspect_id
     PATH = utils.get_input_file_path(user_path)
-    DB_PATH = suspect.get_db_path()
-    SUSPECT = suspect
+    DB_PATH = utils.get_suspect_db_path(PATH, suspect_id)
 
 
-def output_file_path(destination_path, suspect):
+
+def output_file_path(destination_path, suspect_id):
     global NEW_FILE_PATH
     global MESSAGES_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(destination_path, suspect)
+    NEW_FILE_PATH = utils.get_output_file_path(destination_path, suspect_id)
     MESSAGES_PATH = NEW_FILE_PATH + "messages\\"
     try:
         if os.path.exists(MESSAGES_PATH):

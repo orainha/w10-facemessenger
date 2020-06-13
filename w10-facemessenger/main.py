@@ -7,7 +7,6 @@ import core.contacts
 import core.messages
 import core.images
 import core.undark
-import models.suspect
 
 import utils.files as utils
 
@@ -33,11 +32,7 @@ def parse_cmdline():
 def search_cache_images(args, suspect_id):
     print("Searching cache files...")
     # XXX (orainha) Find better way to pass a suspect instance just because the id
-    class TempSuspect:
-        def __init__(self, id):
-            self.id = id
-    temp_suspect = TempSuspect(suspect_id)
-    core.images.paths(args, temp_suspect)
+    core.images.paths(args, suspect_id)
     # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
@@ -73,15 +68,12 @@ def run(args):
             search_cache_images(args, id)
             continue
         
-        # Create suspect instance
-        suspect = models.suspect.create_suspect(id, input_file_path)
-        
-
         # Set modules paths 
-        core.contacts.paths(args, suspect)
-        core.messages.paths(args, suspect)
-        core.images.paths(args, suspect)
-        core.undark.paths(args, suspect)
+        suspect_id = id
+        core.contacts.paths(args, suspect_id)
+        core.messages.paths(args, suspect_id)
+        core.images.paths(args, suspect_id)
+        core.undark.paths(args, suspect_id)
 
 
         # XXX (orainha) Repeated var image_path on search_cache_images()
@@ -92,12 +84,12 @@ def run(args):
         t.start()
         
         if args.format == 'html':
-            utils.create_web_files(args.output, suspect)
+            utils.create_web_files(args.output, suspect_id)
             core.contacts.report_html(args.depth)
             core.messages.report_html(args.depth)
             core.images.report_html(args.depth)
             # Create report.html
-            utils.create_index_html(args, suspect)
+            utils.create_index_html(args, suspect_id)
 
         elif args.format == 'csv':
             delim = args.delimiter
@@ -106,11 +98,11 @@ def run(args):
             core.images.report_csv(delim)
             core.undark.report_csv(delim)
 
-        cwd = os.getcwd()
-        core.images.clean(cwd)
-
         for thread in threads:
             thread.join()
+
+    cwd = os.getcwd()
+    core.images.clean(cwd)
 
     end = timer()
     print("Report processed in " + str(end - start) + " seconds")

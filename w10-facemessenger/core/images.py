@@ -215,9 +215,9 @@ def input_file_path(path):
     PATH = utils.get_input_file_path(path)
 
 
-def output_file_path(path, suspect):
+def output_file_path(path, suspect_id):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(path, suspect)
+    NEW_FILE_PATH = utils.get_output_file_path(path, suspect_id)
 
 
 def extract_image(extract_images_list):

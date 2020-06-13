@@ -39,23 +39,23 @@ def report_csv(delim):
         ]
         subprocess.Popen(args,stdout=f)
 
-def paths(args, suspect):
-    input_file_path(args.input, suspect)
-    output_file_path(args.output, suspect)
+def paths(args, suspect_id):
+    input_file_path(args.input, suspect_id)
+    output_file_path(args.output, suspect_id)
 
 
-def input_file_path(path, suspect):
+def input_file_path(path, suspect_id):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     # XXX (orainha) Where is PATH used?
     global PATH
     global DB_PATH
     PATH = utils.get_input_file_path(path)
-    DB_PATH = suspect.get_db_path()
+    DB_PATH = utils.get_suspect_db_path(PATH, suspect_id)
 
 
-def output_file_path(path, suspect):
+def output_file_path(path, suspect_id):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(path, suspect)
+    NEW_FILE_PATH = utils.get_output_file_path(path, suspect_id)
 
 
 

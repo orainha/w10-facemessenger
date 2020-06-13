@@ -95,8 +95,8 @@ def get_filename_from_url(url):
         exit()
 
 
-def create_index_html(args, suspect):
-    output_path = get_output_file_path(args.output, suspect)
+def create_index_html(args, suspect_id):
+    output_path = get_output_file_path(args.output, suspect_id)
     try:
         template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
         dst_path = output_path + 'report.html'
@@ -106,7 +106,8 @@ def create_index_html(args, suspect):
             template_file, features='html.parser')
         new_file = open(dst_path, 'w', encoding='utf-8')
 
-        html = headers.fill_index_header(html, suspect, args.depth)
+        input_path = get_input_file_path(args.input)
+        html = headers.fill_index_header(html, input_path, suspect_id, args.depth)
 
         new_file.seek(0)
         new_file.write(html.prettify())
@@ -118,8 +119,8 @@ def create_index_html(args, suspect):
         exit()
 
 
-def create_js_css(output_path, suspect):
-    output_path = get_output_file_path(output_path, suspect)
+def create_js_css(output_path, suspect_id):
+    output_path = get_output_file_path(output_path, suspect_id)
     try:
         if not os.path.exists(output_path + "\js"):
             os.makedirs(output_path + "\js")
@@ -138,8 +139,8 @@ def create_js_css(output_path, suspect):
         print("Error on create_js_css(): " + str(error))
 
 
-def create_image_files(output_path, suspect):
-    output_path = get_output_file_path(output_path, suspect)
+def create_image_files(output_path, suspect_id):
+    output_path = get_output_file_path(output_path, suspect_id)
     try:
         #create /images if not exists
         images_path = output_path + "\images"
@@ -154,9 +155,9 @@ def create_image_files(output_path, suspect):
         print(error)
 
 
-def create_web_files(output_path, suspect):
-    create_image_files(output_path, suspect)
-    create_js_css(output_path, suspect)
+def create_web_files(output_path, suspect_id):
+    create_image_files(output_path, suspect_id)
+    create_js_css(output_path, suspect_id)
 
 
 def get_suspect_ids(input_file_path):
@@ -200,9 +201,9 @@ def get_input_file_path(user_path):
         return
 
 
-def get_output_file_path(path, suspect):
+def get_output_file_path(path, suspect_id):
     path = os.path.expandvars(path)
-    new_path = path + f"\\report\{suspect.id}\\"
+    new_path = path + f"\\report\{suspect_id}\\"
     try:
         if not os.path.exists(path):
             raise IOError("Error: Given destination output path not found :" + path)
