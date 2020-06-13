@@ -3,13 +3,13 @@ import sys
 import argparse
 import threading
 
+from timeit import default_timer as timer
+
 import core.contacts
 import core.messages
 import core.images
 import core.undark
 import utils.files as utils
-
-from timeit import default_timer as timer
 
 
 # XXX (ricardoapl) Apply PEP8
@@ -65,7 +65,7 @@ def validate_input_arg(args):
     except IOError as error:
         print("Error --input: " + str(error))
         sys.exit()
-        
+
 
 # TODO (ricardoapl) Extract responsibility to modules/classes
 def run(args):
@@ -80,7 +80,6 @@ def run(args):
     core.messages.paths(args)
     core.images.paths(args)
     core.undark.paths(args)
-
     
     # XXX (orainha) Repeated var image_path on search_cache_images()
     images_path = core.images.PATH + 'Partitions'
