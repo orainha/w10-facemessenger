@@ -25,23 +25,16 @@ pyz = PYZ(
 exe = EXE(
     pyz,
     analysis.scripts,
+    analysis.binaries,
+    analysis.zipfiles,
+    analysis.datas,
     [],
-    exclude_binaries = True,
     name = 'w10-facemessenger',
     debug = False,
     bootloader_ignore_signals = False,
     strip = False,
     upx = True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console = True
-)
-
-coll = COLLECT(
-    exe,
-    analysis.binaries,
-    analysis.zipfiles,
-    analysis.datas,
-    strip = False,
-    upx = True,
-    upx_exclude = [],
-    name = 'w10-facemessenger'
 )
