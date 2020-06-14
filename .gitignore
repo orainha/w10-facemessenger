@@ -6,3 +6,7 @@ __pycache__/
 # Hindsight output files
 *.log
 *.jsonl
+
+# PyInstaller output files
+build/
+dist/
