@@ -38,7 +38,6 @@ def extract_one(src, dst):
     subprocess.run(args, stdout=subprocess.DEVNULL)
 
 
-
 # XXX (ricardoapl) Add destination path/file argument?
 # XXX (ricardoapl) Improve docstring according to PEP8
 def extract_all(path):

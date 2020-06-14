@@ -1,5 +1,6 @@
 import os
 import subprocess
+
 import utils.files as utils
 
 
@@ -25,7 +26,7 @@ def report_csv(delim):
             # '--fine-search',
             # '--removed-only',
         ]
-        subprocess.Popen(args,stdout=f)
+        subprocess.Popen(args, stdout=f)
 
 
 def paths(args):
