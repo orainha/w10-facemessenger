@@ -1,7 +1,6 @@
 import os
 import sys
 import argparse
-import threading
 
 from timeit import default_timer as timer
 
@@ -34,8 +33,7 @@ def search_cache_images(args):
     # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
-    x = threading.Thread(target=core.images.extract_all, args=(images_path,))
-    x.start()
+    core.images.extract_all(images_path)
     if args.format == 'html':
         utils.create_web_files(args.output)
         core.images.report_html(args.depth)
@@ -44,7 +42,6 @@ def search_cache_images(args):
         core.images.report_csv(delim)
     cwd = os.getcwd()
     core.images.clean(cwd)
-    x.join()
 
 
 def validate_input_arg(args):
@@ -69,7 +66,6 @@ def validate_input_arg(args):
 
 # TODO (ricardoapl) Extract responsibility to modules/classes
 def run(args):
-    threads = list()
     start = timer()
 
     # Check if input file exists
@@ -84,9 +80,7 @@ def run(args):
     # XXX (orainha) Repeated var image_path on search_cache_images()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
-    t = threading.Thread(target=core.images.extract_all, args=(images_path,))
-    threads.append(t)
-    t.start()
+    core.images.extract_all(images_path)
     
     if args.format == 'html':
         utils.create_web_files(args.output)
@@ -102,9 +96,6 @@ def run(args):
         core.images.report_csv(delim)
         core.undark.report_csv(delim)
 
-    for thread in threads:
-        thread.join()
-    
     cwd = os.getcwd()
     core.images.clean(cwd)
 
