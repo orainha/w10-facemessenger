@@ -87,6 +87,7 @@ def run(args):
         core.contacts.report_html(args.depth)
         core.messages.report_html(args.depth)
         core.images.report_html(args.depth)
+        core.undark.report_html()
         utils.create_index_html(args)
 
     elif args.format == 'csv':
