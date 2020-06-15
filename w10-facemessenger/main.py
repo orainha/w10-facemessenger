@@ -31,7 +31,6 @@ def parse_cmdline():
 
 def search_cache_images(args, suspect_id):
     print("Searching cache files...")
-    # XXX (orainha) Find better way to pass a suspect instance just because the id
     core.images.paths(args, suspect_id)
     # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'

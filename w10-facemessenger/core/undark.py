@@ -8,7 +8,6 @@ import requests
 import shutil
 
 import utils.files as utils
-import threading
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!

@@ -53,9 +53,12 @@ def extract_all(path):
     threads = list()
     with os.scandir(path) as entries:
         for entry in entries:
-            x = threading.Thread(target=extract_entry, args=(entry, prefix, suffix,))
-            threads.append(x)
-            x.start()
+            if entry.is_dir():
+                filename = f'{prefix}-{suffix}'
+                x = threading.Thread(target=extract_one, args=(entry, filename))
+                threads.append(x)
+                suffix += 1
+                x.start()
         for thread in threads:
             thread.join()
 
