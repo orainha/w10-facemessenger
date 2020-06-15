@@ -19,7 +19,7 @@ def parse_cmdline():
     required_group.add_argument('--input', required=True, help='set path to user directory')
     parser.add_argument('--output', default=r'%USERPROFILE%\Desktop', help='set output directory for report (defaults to Desktop)')
     parser.add_argument('--format', choices=['html', 'csv'], default='html', help='choose report format (defaults to "html")')
-    parser.add_argument('--delimiter', choices=[',', '»', '«'], default=',', help='specify csv report delimiter (defaults to ",")')
+    parser.add_argument('--delimiter', default=',', help='specify csv report delimiter (defaults to ",")')
     # TODO (orainha) Need to write better 'help'
     parser.add_argument('--depth', choices=['fast', 'complete'], default='fast', help='fast: no images, no internet required; complete: with images, internet required, slower')
     args = parser.parse_args()
