@@ -890,8 +890,8 @@ def report_csv_messages(delim):
             title_text_index = 7
             subtitle_text_index = 8
             for row in thread_messages:
-                row = replace_enter_by_space(row, message_index, title_text_index, subtitle_text_index)
-                thread_messages_list.append(row)
+                new_row = replace_enter_by_space(row, message_index, title_text_index, subtitle_text_index)
+                thread_messages_list.append(new_row)
             writer.writerows(thread_messages_list)
 
 
@@ -958,13 +958,13 @@ def extract_images(extract_conversation_list):
 
 
 def replace_enter_by_space(row, *indexes):
-
+    new_row = row
     for index in indexes:
-        if str(row[index]).find('\n') > 0:
+        if str(new_row[index]).find('\n') > 0:
             row_list = list()
-            for i, item in enumerate(row):
+            for i, item in enumerate(new_row):
                 if i == index:
-                    item = str(row[i]).replace('\n', ' ')
+                    item = str(new_row[i]).replace('\n', ' ')
                 row_list.append(item)
-            row = tuple(row_list)
-    return row
+            new_row = tuple(row_list)
+    return new_row
