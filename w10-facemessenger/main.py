@@ -88,6 +88,7 @@ def run(args):
             core.messages.report_html(args.depth)
             core.images.report_html(args.depth)
             # Create report.html
+            utils.create_report_html(args, suspect_id)
             utils.create_index_html(args, suspect_id)
 
         elif args.format == 'csv':
