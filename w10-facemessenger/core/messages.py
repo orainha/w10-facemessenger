@@ -807,6 +807,8 @@ def report_html_conversations(template_path, depth):
                 next_thread_key = results[i + 2][3]
                 if next_thread_key != thread_key:
                     div_container_fluid.append(div_conversation_group)
+            if (results_lenght == i + 2):
+                div_container_fluid.append(div_conversation_group)
 
     html_doc_new_file.table.insert_before(div_container_fluid)
     
@@ -874,6 +876,7 @@ def report_csv_messages(delim):
     thread_idx = columns.index('thread_key')
     threads = [row[thread_idx] for row in thread_rows]
     for thread in threads:
+        thread_messages_list = list()
         thread_messages = filter(lambda row: (
             row[thread_idx] == thread), msg_rows)
         # XXX (ricardoapl) Remove reference to MESSAGES_PATH?
@@ -882,7 +885,14 @@ def report_csv_messages(delim):
             writer = csv.writer(csvfile, delimiter=delim, quotechar='|',
                                 quoting=csv.QUOTE_MINIMAL)
             writer.writerow(columns)
-            writer.writerows(thread_messages)
+
+            message_index = 4
+            title_text_index = 7
+            subtitle_text_index = 8
+            for row in thread_messages:
+                row = replace_enter_by_space(row, message_index, title_text_index, subtitle_text_index)
+                thread_messages_list.append(row)
+            writer.writerows(thread_messages_list)
 
 
 def report_csv(delim):
@@ -945,3 +955,16 @@ def extract_images(extract_conversation_list):
         x1.start()
     for thread in threads:
         thread.join()
+
+
+def replace_enter_by_space(row, *indexes):
+
+    for index in indexes:
+        if str(row[index]).find('\n') > 0:
+            row_list = list()
+            for i, item in enumerate(row):
+                if i == index:
+                    item = str(row[i]).replace('\n', ' ')
+                row_list.append(item)
+            row = tuple(row_list)
+    return row
