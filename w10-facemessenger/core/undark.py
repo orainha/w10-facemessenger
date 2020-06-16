@@ -37,7 +37,7 @@ def report_html():
     
     tr_tag = html.new_tag('tr')
     td_text = html.new_tag('td')
-    for i, letter in enumerate(text):
+    for letter in text:
         td_text.append(letter)
         if (letter == '\n'):
             tr_tag.append(td_text)
