@@ -37,19 +37,13 @@ def report_html():
     
     tr_tag = html.new_tag('tr')
     td_text = html.new_tag('td')
-    td_text.append(str(text))
-    tr_tag.append(td_text)
-    html.table.tbody.append(tr_tag)
-    # print("type of text is " + str(type(text)))
-    # for letter,i in enumerate(str(text)):
-    #     td_text.append(str(text))
-    #     if (letter == '\n'):
-    #         tr_tag.append(td_text)
-    #         tr_tag = html.new_tag('tr')
-    #         td_text = html.new_tag('td')
-    #     if(i == len(str(text))-1):
-    #         html.table.tbody.append(tr_tag)
-    #         print("end")
+    for i, letter in enumerate(text):
+        td_text.append(letter)
+        if (letter == '\n'):
+            tr_tag.append(td_text)
+            html.table.tbody.append(tr_tag)
+            tr_tag = html.new_tag('tr')
+            td_text = html.new_tag('td')
 
     report_path = NEW_FILE_PATH + REPORT_FILENAME
     with open(report_path, 'w') as report:
