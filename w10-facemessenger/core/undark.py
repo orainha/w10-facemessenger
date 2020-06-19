@@ -57,9 +57,9 @@ def report_csv(delim):
     """
     input_path = PATH
     dst_path = NEW_FILE_PATH 
+    db_path = DB_PATH
     filename = '\\report-undark.csv'
     dst_path = dst_path + filename
-    db_path = utils.get_db_path(input_path)
     undark = os.path.join(os.path.dirname(__file__), '..\\undark.exe')
     with open(dst_path, 'w') as f:
         args = [
@@ -72,20 +72,20 @@ def report_csv(delim):
         Popen(args,stdout=f)
 
 
-def paths(args):
-    input_file_path(args.input)
-    output_file_path(args.output)
+def paths(args, suspect_id):
+    input_file_path(args.input, suspect_id)
+    output_file_path(args.output, suspect_id)
 
 
-def input_file_path(path):
+def input_file_path(path, suspect_id):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     # XXX (orainha) Where is PATH used?
     global PATH
     global DB_PATH
     PATH = utils.get_input_file_path(path)
-    DB_PATH = utils.get_db_path(PATH)
+    DB_PATH = utils.get_suspect_db_path(PATH, suspect_id)
 
 
-def output_file_path(path):
+def output_file_path(path, suspect_id):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(path)
+    NEW_FILE_PATH = utils.get_output_file_path(path, suspect_id)

@@ -26,16 +26,14 @@ def parse_cmdline():
     return args
 
 
-def search_cache_images(args):
+def search_cache_images(args, suspect_id):
     print("Searching cache files...")
-    core.images.input_file_path(args.input)
-    core.images.output_file_path(args.output)
+    core.images.paths(args, suspect_id)
     # XXX (orainha) Repeated var image_path on run()
     images_path = core.images.PATH + 'Partitions'
     images_path = os.path.expandvars(images_path)
     core.images.extract_all(images_path)
     if args.format == 'html':
-        utils.create_web_files(args.output)
         core.images.report_html(args.depth)
     elif args.format == 'csv':
         delim = args.delimiter
@@ -44,58 +42,52 @@ def search_cache_images(args):
     core.images.clean(cwd)
 
 
-def validate_input_arg(args):
-    # XXX (ricardoapl) This method is not responsible for execution, only validation!
-    # XXX (ricardoapl) Why raise exceptions only to catch afterwards?
-    try:
-        if not os.path.exists(args.input):
-            raise IOError(args.input + " not found")
-        full_input_path = utils.get_input_file_path(args.input)
-        if not os.path.exists(full_input_path):
-            raise IOError(full_input_path + " not found")
-        db_path = utils.get_db_path(full_input_path)
-        if not os.path.exists(db_path):
-            print("Warning: Database " + db_path + " not found")
-            # If there is no database but file path exists, search cache images
-            search_cache_images(args)
-            sys.exit()
-    except IOError as error:
-        print("Error --input: " + str(error))
-        sys.exit()
-
-
 # TODO (ricardoapl) Extract responsibility to modules/classes
 def run(args):
     start = timer()
 
-    # Check if input file exists
-    validate_input_arg(args)
-    
-    # XXX (orainha) Simplify? 
-    core.contacts.paths(args)
-    core.messages.paths(args)
-    core.images.paths(args)
-    core.undark.paths(args)
-    
-    # XXX (orainha) Repeated var image_path on search_cache_images()
-    images_path = core.images.PATH + 'Partitions'
-    images_path = os.path.expandvars(images_path)
-    core.images.extract_all(images_path)
-    
-    if args.format == 'html':
-        utils.create_web_files(args.output)
-        core.contacts.report_html(args.depth)
-        core.messages.report_html(args.depth)
-        core.images.report_html(args.depth)
-        core.undark.report_html()
-        utils.create_index_html(args)
+    # Get existing suspect accounts
+    suspect_ids = []
+    input_file_path = utils.get_input_file_path(args.input)
+    suspect_ids = utils.get_suspect_ids(input_file_path)
 
-    elif args.format == 'csv':
-        delim = args.delimiter
-        core.contacts.report_csv(delim)
-        core.messages.report_csv(delim)
-        core.images.report_csv(delim)
-        core.undark.report_csv(delim)
+    # Create report for each id
+    for id in suspect_ids:
+        # Validate database existence
+        db_path = utils.get_suspect_db_path(input_file_path, id)
+        if not utils.has_database(args, db_path):
+            # If there is no database but file path exists, search cache images
+            print("Warning: Database " + db_path + " not found")
+            search_cache_images(args, id)
+            continue
+
+        # Set modules paths 
+        suspect_id = id
+        core.contacts.paths(args, suspect_id)
+        core.messages.paths(args, suspect_id)
+        core.images.paths(args, suspect_id)
+        core.undark.paths(args, suspect_id)
+
+        # XXX (orainha) Repeated var image_path on search_cache_images()
+        images_path = core.images.PATH + 'Partitions'
+        images_path = os.path.expandvars(images_path)
+        core.images.extract_all(images_path)
+
+        if args.format == 'html':
+            utils.create_web_files(args.output, suspect_id)
+            core.contacts.report_html(args.depth)
+            core.messages.report_html(args.depth)
+            core.images.report_html(args.depth)
+            core.undark.report_html()
+            utils.create_report_html(args, suspect_id)
+            utils.create_index_html(args, suspect_id)
+
+        elif args.format == 'csv':
+            delim = args.delimiter
+            core.contacts.report_csv(delim)
+            core.messages.report_csv(delim)
+            core.images.report_csv(delim)
+            core.undark.report_csv(delim)
 
     cwd = os.getcwd()
     core.images.clean(cwd)

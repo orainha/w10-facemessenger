@@ -144,23 +144,21 @@ def report_csv(delim):
         writer.writerow(columns)
         writer.writerows(rows)
 
+def paths(args, suspect_id):
+    input_file_path(args.input, suspect_id)
+    output_file_path(args.output, suspect_id)
 
-def paths(args):
-    input_file_path(args.input)
-    output_file_path(args.output)
-
-
-def input_file_path(user_path):
+def input_file_path(user_path, suspect_id):
     # XXX (orainha) Procurar por utilizadores dando apenas o drive?
     global PATH
     global DB_PATH
     PATH = utils.get_input_file_path(user_path)
-    DB_PATH = utils.get_db_path(PATH)
+    DB_PATH = utils.get_suspect_db_path(PATH, suspect_id)
 
 
-def output_file_path(destination_path):
+def output_file_path(destination_path, suspect_id):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(destination_path)
+    NEW_FILE_PATH = utils.get_output_file_path(destination_path, suspect_id)
 
 
 def extract_images(extract_contacts_list):

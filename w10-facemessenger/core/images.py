@@ -194,9 +194,9 @@ def filter_image_content(data):
     return filtered_data
 
 
-def paths(args):
+def paths(args, suspect):
     input_file_path(args.input)
-    output_file_path(args.output)
+    output_file_path(args.output, suspect)
 
 
 def input_file_path(path):
@@ -206,9 +206,9 @@ def input_file_path(path):
     PATH = utils.get_input_file_path(path)
 
 
-def output_file_path(path):
+def output_file_path(path, suspect_id):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(path)
+    NEW_FILE_PATH = utils.get_output_file_path(path, suspect_id)
 
 
 def extract_image(extract_images_list):

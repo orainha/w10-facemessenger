@@ -1,7 +1,9 @@
-import os 
+import os
+import sys
 import requests
 import shutil
 import json
+import sqlite3
 from pathlib import Path
 import core.headers as headers
 from bs4 import BeautifulSoup
@@ -94,10 +96,10 @@ def get_filename_from_url(url):
         sys.exit()
 
 
-def create_index_html(args):
-    output_path = get_output_file_path(args.output)
+def create_report_html(args, suspect_id):
+    output_path = get_output_file_path(args.output, suspect_id)
     try:
-        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
+        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_report.html')
         dst_path = output_path + 'report.html'
 
         template_file = open(template_index_path, 'r', encoding='utf-8')
@@ -106,7 +108,7 @@ def create_index_html(args):
         new_file = open(dst_path, 'w', encoding='utf-8')
 
         input_path = get_input_file_path(args.input)
-        html = headers.fill_index_header(html, input_path, args.depth)
+        html = headers.fill_report_header(html, input_path, suspect_id, args.depth)
 
         new_file.seek(0)
         new_file.write(html.prettify())
@@ -114,12 +116,43 @@ def create_index_html(args):
 
         # shutil.copy2(template_index_path, dst_path)
     except OSError as error:
+        print("Error on create_report_html(): " + str(error))
+        exit()
+
+
+def create_index_html(args, suspect_id):
+    output_path = get_output_file_path(args.output, suspect_id)
+    try:
+        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
+        dst_path = output_path + r'..\\index.html'
+        input_path = get_input_file_path(args.input)
+        suspect_profile = get_suspect_profile(input_path, suspect_id)
+
+        if(not os.path.exists(dst_path)):
+            template_file = open(template_index_path, 'r', encoding='utf-8')
+            html = BeautifulSoup(
+                template_file, features='html.parser')
+            html = headers.fill_index_header(html, input_path, suspect_id)
+        else:
+            f = open(dst_path, 'r', encoding='utf-8')
+            html = BeautifulSoup(
+                    f, features='html.parser')
+        
+        new_file = open(dst_path, 'w', encoding='utf-8')
+
+        html = create_suspect_index_row(html, suspect_profile, args.depth)
+
+        new_file.seek(0)
+        new_file.write(html.prettify())
+        new_file.truncate()
+
+    except OSError as error:
         print("Error on create_index_html(): " + str(error))
         sys.exit()
 
 
-def create_js_css(output_path):
-    output_path = get_output_file_path(output_path)
+def create_js_css(output_path, suspect_id):
+    output_path = get_output_file_path(output_path, suspect_id)
     try:
         if not os.path.exists(output_path + "\js"):
             os.makedirs(output_path + "\js")
@@ -138,8 +171,8 @@ def create_js_css(output_path):
         print("Error on create_js_css(): " + str(error))
 
 
-def create_image_files(output_path):
-    output_path = get_output_file_path(output_path)
+def create_image_files(output_path, suspect_id):
+    output_path = get_output_file_path(output_path, suspect_id)
     try:
         #create /images if not exists
         images_path = output_path + "\images"
@@ -154,22 +187,22 @@ def create_image_files(output_path):
         print(error)
 
 
-def create_web_files(output_path):
-    create_image_files(output_path)
-    create_js_css(output_path)
+def create_web_files(output_path, suspect_id):
+    create_image_files(output_path, suspect_id)
+    create_js_css(output_path, suspect_id)
 
 
-def get_suspect_id(input_file_path):
+def get_suspect_ids(input_file_path):
+    #auth_id poderá ser um array (se tiver mais elementos, tratá-lo de modo diferente)
     try:
         if os.path.exists(input_file_path):
-            auth_id = 0
+            auth_ids = []
             f_data = open(input_file_path + 'data', 'r')
             data = json.load(f_data)
             for item in data:
                 txt = item.split(":")
-                auth_id = txt[1]
-                break
-            return auth_id
+                auth_ids.append(txt[1])
+            return auth_ids
         else:
             raise IOError(input_file_path + " not found")
     except IOError as error:
@@ -177,11 +210,10 @@ def get_suspect_id(input_file_path):
         sys.exit()
 
 
-def get_db_path(input_file_path):
+def get_suspect_db_path(input_file_path, suspect_id):
     try:
         if not os.path.exists(input_file_path):
             raise IOError(str(input_file_path) + " not found")
-        suspect_id = get_suspect_id(input_file_path)
         db_file_name = "msys_" + suspect_id + ".db"
         db_path = input_file_path + db_file_name
         return db_path
@@ -201,9 +233,9 @@ def get_input_file_path(user_path):
         return
 
 
-def get_output_file_path(path):
+def get_output_file_path(path, suspect_id):
     path = os.path.expandvars(path)
-    new_path = path + "\\report\\"
+    new_path = path + f"\\report\{suspect_id}\\"
     try:
         if not os.path.exists(path):
             raise IOError("Error: Given destination output path not found :" + path)
@@ -213,4 +245,92 @@ def get_output_file_path(path):
     except IOError as error:
         print(error)
         sys.exit()
-    
+
+
+def has_database(args, db_path):
+    try:
+        if not os.path.exists(args.input):
+            raise IOError(args.input + " not found")
+        full_input_path = get_input_file_path(args.input)
+        if not os.path.exists(full_input_path):
+            raise IOError(full_input_path + " not found")
+        if not os.path.exists(db_path):
+            return False
+        else:
+            return True
+    except IOError as error:
+        print("Error --input: " + str(error))
+        sys.exit()
+
+
+def get_suspect_profile(input_file_path, suspect_id):
+    SUSPECT_QUERRY = """
+        SELECT
+            profile_picture_url,
+            name,
+            profile_picture_large_url 
+        FROM contacts
+        WHERE id = """ + str(suspect_id)
+
+    db_path = get_suspect_db_path(input_file_path, suspect_id)
+
+    # Connect to database
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute(SUSPECT_QUERRY)
+
+    for row in c:
+        small_pic = str(row[0])
+        name = str(row[1])
+        large_pic = str(row[2])
+
+    profile = []
+    profile.append(suspect_id)
+    profile.append(name)
+    profile.append(small_pic)
+    profile.append(large_pic)
+
+    return profile
+
+
+def create_suspect_index_row(html, suspect_profile, depth):
+    suspect_id = suspect_profile[0]
+    suspect_name = suspect_profile[1]
+    suspect_pic = suspect_profile[2]
+    suspect_large_pic = suspect_profile[3]
+
+    div_row = html.new_tag('div')
+    div_col_left = html.new_tag('div')
+    div_col_right = html.new_tag('div')
+    div_row['class'] = "row"
+    div_col_left['class'] = "col text-right"
+    div_col_right['class'] = "col text-left"
+
+    href = html.new_tag('a')
+    href['href'] = f'{suspect_id}/report.html'
+    href.append(suspect_name)
+
+    photo = html.new_tag('div')
+    filetype = get_filetype(suspect_pic)
+    if (depth == "fast"):
+        button_tag = html.new_tag('button')
+        button_tag['id'] = str(suspect_id) + filetype
+        button_tag['class'] = 'btn_download_conversation_contact_image btn btn-outline-dark my-2 my-sm-0 fast-button pb-2'
+        button_tag['value'] = suspect_large_pic
+        button_tag.append('Download Image')
+        photo.append(button_tag)
+    elif (depth == "complete"):
+        href_tag = html.new_tag('a')
+        href_tag['href'] = f'{suspect_id}\contacts\images\large\{suspect_id}' + filetype
+        img_tag = html.new_tag('img')
+        img_tag['src'] = f'{suspect_id}\contacts\images\small\{suspect_id}' + filetype
+        img_tag['id'] = 'imgParticipant'
+        href_tag.append(img_tag)
+        photo.append(href_tag)
+    div_col_left.append(photo)
+    div_col_right.append(href)
+    div_row.append(div_col_left)
+    div_row.append(div_col_right)
+    html.table.insert_before(div_row)
+
+    return html
