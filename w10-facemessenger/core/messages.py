@@ -32,7 +32,13 @@ CONVERSATIONS_QUERRY = """
         p.nickname
     FROM participants as p 
     JOIN contacts as c ON c.id = p.contact_id
+    WHERE p.thread_key IN (SELECT thread_key FROM messages)
 """
+# TODO (orainha) Tratar dos participantes sem mensagens pela querry
+
+# """
+# WHERE p.thread_key IN (SELECT thread_key FROM messages)
+# """
 MESSAGES_PER_CONVERSATION_QUERRY = """
     SELECT
         m.thread_key,
