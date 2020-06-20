@@ -120,7 +120,7 @@ def append_html(data, html, depth):
             extract_images_list.append(image)
             # Show on html
             img_tag = html.new_tag('img')
-            img_tag['src'] = f'images-search\{filename}{filetype}'
+            img_tag['src'] = f'images\{filename}{filetype}'
             image_tag.append(img_tag)
             previous_filename = filename
 
@@ -194,9 +194,9 @@ def filter_image_content(data):
     return filtered_data
 
 
-def paths(args, suspect):
+def paths(args):
     input_file_path(args.input)
-    output_file_path(args.output, suspect)
+    output_file_path(args.output)
 
 
 def input_file_path(path):
@@ -206,13 +206,16 @@ def input_file_path(path):
     PATH = utils.get_input_file_path(path)
 
 
-def output_file_path(path, suspect_id):
+def output_file_path(path):
     global NEW_FILE_PATH
-    NEW_FILE_PATH = utils.get_output_file_path(path, suspect_id)
+    NEW_FILE_PATH = utils.get_index_path(path)
+    NEW_FILE_PATH = NEW_FILE_PATH + "cache\\"
+    if not os.path.exists(NEW_FILE_PATH):
+        os.makedirs(NEW_FILE_PATH)
 
 
 def extract_image(extract_images_list):
-    images_path = NEW_FILE_PATH + "images-search\\"
+    images_path = NEW_FILE_PATH + "images\\"
     try:
         if not os.path.exists(images_path):
             os.makedirs(images_path)

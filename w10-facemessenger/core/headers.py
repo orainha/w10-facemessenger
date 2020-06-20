@@ -41,7 +41,7 @@ def fill_report_header(html, input_file_path, suspect_id, depth):
     href_tag['href'] = '../index.html'
     img_logo = html.new_tag("img")
     img_logo["id"] = "imgLogo"
-    img_logo["src"] = "images/logo.png"
+    img_logo["src"] = "../images/logo.png"
     href_tag.append(img_logo)
     div_logo.append(href_tag)
 
@@ -163,79 +163,6 @@ def fill_report_header(html, input_file_path, suspect_id, depth):
     div_container_fluid.append(div_container_row)
 
     html.header.append(div_container_fluid)
-
-    return html
-
-
-def fill_index_header(html, input_file_path, suspect_id):
-
-    SUSPECT_QUERRY = """
-        SELECT
-            profile_picture_url,
-            name,
-            profile_picture_large_url 
-        FROM contacts
-        WHERE id = """ + str(suspect_id)
-
-    db_path = utils.get_suspect_db_path(input_file_path, suspect_id)
-
-    # Connect to database
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    c.execute(SUSPECT_QUERRY)
-
-    for row in c:
-        small_pic = str(row[0])
-        name = str(row[1])
-        large_pic = str(row[2])
-
-    div_container_fluid = html.new_tag("div")
-    div_container_fluid["class"] = "container-fluid"
-    div_container_row = html.new_tag("div")
-    div_container_row["class"] = "row"
-
-    # LOGO
-    div_logo = html.new_tag("div")
-    div_logo["class"] = "col-xl-1 mt-2"
-    img_logo = html.new_tag("img")
-    img_logo["id"] = "imgLogo"
-    img_logo["src"] = f"{suspect_id}/images/logo.png"
-    div_logo.append(img_logo)
-
-    div_empty = html.new_tag("div")
-    div_empty["class"] = "col-xl-11 mt-2"
-
-    div_container_row.append(div_logo)
-    div_container_row.append(div_empty)
-
-    div_container_fluid.append(div_container_row)
-
-    html.header.append(div_container_fluid)
-
-    # HEAD
-    link_1 = html.new_tag('link')
-    link_2 = html.new_tag('link')
-    link_3 = html.new_tag('link')
-    link_1['rel'] = "stylesheet"
-    link_2['rel'] = "stylesheet"
-    link_3['rel'] = "stylesheet"
-    link_1['href'] = f'{suspect_id}/css/bootstrap.css'
-    link_2['href'] = f'{suspect_id}/css/main.css'
-    link_3['href'] = f'{suspect_id}/css/bootstrap.js'
-
-    html.head.append(link_1)
-    html.head.append(link_2)
-    html.head.append(link_3)
-
-    # END BODY
-
-    script_1 = html.new_tag('script')
-    script_2 = html.new_tag('script')
-    script_1["src"] = f'{suspect_id}/js/axios.js'
-    script_2["src"] = f'{suspect_id}/js/download_buttons.js'
-
-    html.body.append(script_1)
-    html.body.append(script_2)
 
     return html
 

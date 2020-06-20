@@ -11,12 +11,14 @@ from bs4 import BeautifulSoup
 
 def replace_by_default(output_path, file_path, filename, filetype):
     # URL not found, get default image to replace
-    not_found_image_filename = output_path + f'images\\notfound.jpg'
+    output_parent_path = os.path.abspath(os.path.join(output_path, os.pardir))
+    images_index_path = output_parent_path + "\\images"
+    not_found_image_filename = images_index_path + "\\notfound.jpg"
 
     try:
         #create /images if not exists
-        if not os.path.exists(output_path + "\images"):
-             raise IOError(output_path + "\images path does not exist")
+        if not os.path.exists(images_index_path):
+             raise IOError(images_index_path + " path does not exist")
 
         # Copy default "not found" image and name it with contact id as file name
         shutil.copy2(not_found_image_filename, file_path +
@@ -121,10 +123,10 @@ def create_report_html(args, suspect_id):
 
 
 def create_index_html(args, suspect_id):
-    output_path = get_output_file_path(args.output, suspect_id)
+    output_path = get_index_path(args.output)
     try:
         template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
-        dst_path = output_path + r'..\\index.html'
+        dst_path = output_path + "index.html"
         input_path = get_input_file_path(args.input)
         suspect_profile = get_suspect_profile(input_path, suspect_id)
 
@@ -132,7 +134,6 @@ def create_index_html(args, suspect_id):
             template_file = open(template_index_path, 'r', encoding='utf-8')
             html = BeautifulSoup(
                 template_file, features='html.parser')
-            html = headers.fill_index_header(html, input_path, suspect_id)
         else:
             f = open(dst_path, 'r', encoding='utf-8')
             html = BeautifulSoup(
@@ -151,8 +152,8 @@ def create_index_html(args, suspect_id):
         sys.exit()
 
 
-def create_js_css(output_path, suspect_id):
-    output_path = get_output_file_path(output_path, suspect_id)
+def create_js_css(output_path):
+    output_path = get_index_path(output_path)
     try:
         if not os.path.exists(output_path + "\js"):
             os.makedirs(output_path + "\js")
@@ -163,16 +164,16 @@ def create_js_css(output_path, suspect_id):
 
         if not os.path.exists(output_path + "\css"):
             os.makedirs(output_path + "\css")
-        js_path = os.path.join(os.path.dirname(__file__), r'..\templates\css\\')
-        js_files = os.listdir(js_path)
-        for filename in js_files:
-            shutil.copy2(os.path.join(js_path, filename), output_path + "\css")
+        css_path = os.path.join(os.path.dirname(__file__), r'..\templates\css\\')
+        css_files = os.listdir(css_path)
+        for filename in css_files:
+            shutil.copy2(os.path.join(css_path, filename), output_path + "\css")
     except OSError as error:
         print("Error on create_js_css(): " + str(error))
 
 
-def create_image_files(output_path, suspect_id):
-    output_path = get_output_file_path(output_path, suspect_id)
+def create_image_files(output_path):
+    output_path = get_index_path(output_path)
     try:
         #create /images if not exists
         images_path = output_path + "\images"
@@ -187,9 +188,9 @@ def create_image_files(output_path, suspect_id):
         print(error)
 
 
-def create_web_files(output_path, suspect_id):
-    create_image_files(output_path, suspect_id)
-    create_js_css(output_path, suspect_id)
+def create_web_files(output_path):
+    create_image_files(output_path)
+    create_js_css(output_path)
 
 
 def get_suspect_ids(input_file_path):
@@ -234,11 +235,25 @@ def get_input_file_path(user_path):
 
 
 def get_output_file_path(path, suspect_id):
-    path = os.path.expandvars(path)
-    new_path = path + f"\\report\{suspect_id}\\"
+    path = get_index_path(path)
+    new_path = path + f"{suspect_id}\\"
     try:
         if not os.path.exists(path):
             raise IOError("Error: Given destination output path not found :" + path)
+        if not os.path.exists(new_path):
+            os.makedirs(new_path)
+        return new_path
+    except IOError as error:
+        print(error)
+        sys.exit()
+
+
+def get_index_path(path):
+    path = os.path.expandvars(path)
+    new_path = path + f"\\report\\"
+    try:
+        if not os.path.exists(path):
+            raise IOError("Error: Given destination index path not found :" + path)
         if not os.path.exists(new_path):
             os.makedirs(new_path)
         return new_path
