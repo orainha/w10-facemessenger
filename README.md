@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/48807108/85414813-7efba700-b564-11ea-85a6-2098fe48de87.png" width="64"/>
+</p>
+
 ## About
 
 W10-FaceMessenger is a forensic analysis tool designed to extract the most significant artifacts produced by the usage of the Windows Store application Messenger (Beta) by Facebook Inc.
@@ -10,7 +14,7 @@ This tool is currently capable of extracting the following content:
 
 ## Supported platforms
 
-W10-FaceMessenger is designed to work with Windows 10.
+W10-FaceMessenger is designed to work with Windows.
 
 Support for other platforms is not planned for the near future.
 
