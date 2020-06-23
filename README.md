@@ -2,13 +2,15 @@
 
 W10-FaceMessenger is a forensic analysis tool designed to extract the most significant artifacts produced by the usage of the Windows Store application Messenger (Beta) by Facebook Inc.
 
-As of now, W10-FaceMessenger is capable of extracting the following content:
+This tool is currently capable of extracting the following content:
 - Contacts
 - Messages
-- Cached images (from user profile searches, messages, etc.)
+- Cached images
 - Deleted database records
 
-These scripts are designed to work with Windows 10.
+## Supported platforms
+
+W10-FaceMessenger is designed to work with Windows 10.
 
 Support for other platforms is not planned for the near future.
 
@@ -18,13 +20,23 @@ For the time being, you must install [Python 3](https://www.python.org/) and run
 
 We will be providing binary packages soon.
 
+## Usage
+
+W10-FaceMessenger must point to a Windows user profile directory such as `C:\Users\ricardoapl`.
+
+Example:
+
+```
+python3.exe .\w10-facemessenger\main.py --input C:\Users\ricardoapl --output C:\Users\ricardoapl\Desktop --format csv --delimiter :
+```
+
 ## Authors
 
-This software was developed by Osvaldo Rainha ([**@orainha**](https://github.com/orainha)) and Ricardo Lopes ([**@ricardoapl**](https://github.com/ricardoapl)) under the guidance of Miguel Frade and Patrício Domingues.
+This software was originally developed by Osvaldo Rainha ([**@orainha**](https://github.com/orainha)) and Ricardo Lopes ([**@ricardoapl**](https://github.com/ricardoapl)) under the guidance of Miguel Frade ([**@mfrade**](https://github.com/mfrade)) and Patrício Domingues ([**@PatricioDomingues**](https://github.com/PatricioDomingues/)).
 
 ## License
 
-This software is distributed under the MIT License.
+W10-FaceMessenger is licensed under the MIT License.
 
 Furthermore, it makes use of:
 
