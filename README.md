@@ -27,7 +27,11 @@ W10-FaceMessenger must point to a Windows user profile directory such as `C:\Use
 Example:
 
 ```
-python3.exe .\w10-facemessenger\main.py --input C:\Users\ricardoapl --output C:\Users\ricardoapl\Desktop --format csv --delimiter :
+python3.exe .\w10-facemessenger\main.py
+            --input C:\Users\ricardoapl
+            --output C:\Users\ricardoapl\Desktop
+            --format csv
+            --delimiter :
 ```
 
 ## Authors
