@@ -5,7 +5,7 @@ import shutil
 import json
 import sqlite3
 from pathlib import Path
-import core.headers as headers
+import utils.headers as headers
 from bs4 import BeautifulSoup
 
 
