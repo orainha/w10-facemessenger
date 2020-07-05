@@ -816,7 +816,7 @@ def report_html_conversations(template_path, depth):
                 next_thread_key = results[i + 2][3]
                 if next_thread_key != thread_key:
                     div_container_fluid.append(div_conversation_group)
-            if (results_lenght == i + 2):
+            if (results_lenght == i + 1):
                 div_container_fluid.append(div_conversation_group)
 
     html_doc_new_file.table.insert_before(div_container_fluid)
