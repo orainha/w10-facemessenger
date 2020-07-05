@@ -158,18 +158,6 @@ def create_index_html(output_path):
         template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
         dst_path = output_path + 'index.html'
 
-        # template_file = open(template_index_path, 'r', encoding='utf-8')
-        # html = BeautifulSoup(
-        #     template_file, features='html.parser')
-        # new_file = open(dst_path, 'w', encoding='utf-8')
-
-        # input_path = get_input_file_path(args.input)
-        # html = headers.fill_report_header(html, input_path, suspect_id, args.depth)
-
-        # new_file.seek(0)
-        # new_file.write(html.prettify())
-        # new_file.truncate()
-
         shutil.copy2(template_index_path, dst_path)
     except OSError as error:
         print("Error on create_index_html(): " + str(error))
@@ -356,7 +344,7 @@ def create_suspect_index_row(html, suspect_profile, depth):
     if (depth == "fast"):
         button_tag = html.new_tag('button')
         button_tag['id'] = str(suspect_id) + filetype
-        button_tag['class'] = 'btn_download_conversation_contact_image btn btn-outline-dark my-2 my-sm-0 fast-button pb-2'
+        button_tag['class'] = 'btn_download_suspect_image btn btn-outline-dark my-2 my-sm-0 fast-button pb-2'
         button_tag['value'] = suspect_large_pic
         button_tag.append('Download Image')
         photo.append(button_tag)
