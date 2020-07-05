@@ -10,8 +10,8 @@ import utils.files as utils
 
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
-TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_images.html')
-REPORT_FILENAME = 'report_images.html'
+TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_cache.html')
+REPORT_FILENAME = 'cache_images.html'
 NEW_FILE_PATH = ''
 PATH = ''
 

@@ -12,7 +12,7 @@ import utils.files as utils
 
 # XXX (ricardoapl) Fix this non-pythonic mess!
 TEMPLATE_FILENAME = os.path.join(os.path.dirname(__file__), r'..\templates\template_undark.html')
-REPORT_FILENAME = 'report_undark.html'
+REPORT_FILENAME = 'undark.html'
 NEW_FILE_PATH = ''
 PATH = ''
 DB_PATH = ''
