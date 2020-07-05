@@ -42,6 +42,8 @@ def fill_report_header(html, input_file_path, suspect_id, depth):
     img_logo = html.new_tag("img")
     img_logo["id"] = "imgLogo"
     img_logo["src"] = "../images/logo.png"
+    img_logo["title"] = "Go back to index page"
+    img_logo["alt"] = "Go back to index page"
     href_tag.append(img_logo)
     div_logo.append(href_tag)
 
