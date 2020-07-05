@@ -122,11 +122,11 @@ def create_report_html(args, suspect_id):
         exit()
 
 
-def create_index_html(args, suspect_id):
+def create_suspects_html(args, suspect_id):
     output_path = get_index_path(args.output)
     try:
-        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
-        dst_path = output_path + "index.html"
+        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_suspects.html')
+        dst_path = output_path + "suspects.html"
         input_path = get_input_file_path(args.input)
         suspect_profile = get_suspect_profile(input_path, suspect_id)
 
@@ -148,8 +148,32 @@ def create_index_html(args, suspect_id):
         new_file.truncate()
 
     except OSError as error:
-        print("Error on create_index_html(): " + str(error))
+        print("Error on create_suspects_html(): " + str(error))
         sys.exit()
+
+
+def create_index_html(output_path):
+    output_path = get_index_path(output_path)
+    try:
+        template_index_path = os.path.join(os.path.dirname(__file__), r'..\templates\\template_index.html')
+        dst_path = output_path + 'index.html'
+
+        # template_file = open(template_index_path, 'r', encoding='utf-8')
+        # html = BeautifulSoup(
+        #     template_file, features='html.parser')
+        # new_file = open(dst_path, 'w', encoding='utf-8')
+
+        # input_path = get_input_file_path(args.input)
+        # html = headers.fill_report_header(html, input_path, suspect_id, args.depth)
+
+        # new_file.seek(0)
+        # new_file.write(html.prettify())
+        # new_file.truncate()
+
+        shutil.copy2(template_index_path, dst_path)
+    except OSError as error:
+        print("Error on create_index_html(): " + str(error))
+        exit()
 
 
 def create_js_css(output_path):
@@ -191,6 +215,7 @@ def create_image_files(output_path):
 def create_web_files(output_path):
     create_image_files(output_path)
     create_js_css(output_path)
+    create_index_html(output_path)
 
 
 def get_suspect_ids(input_file_path):
@@ -322,6 +347,7 @@ def create_suspect_index_row(html, suspect_profile, depth):
     div_col_right['class'] = "col text-left"
 
     href = html.new_tag('a')
+    href['target'] ="_parent"
     href['href'] = f'{suspect_id}/report.html'
     href.append(suspect_name)
 
@@ -336,6 +362,7 @@ def create_suspect_index_row(html, suspect_profile, depth):
         photo.append(button_tag)
     elif (depth == "complete"):
         href_tag = html.new_tag('a')
+        href['target'] ="_parent"
         href_tag['href'] = f'{suspect_id}\contacts\images\large\{suspect_id}' + filetype
         img_tag = html.new_tag('img')
         img_tag['src'] = f'{suspect_id}\contacts\images\small\{suspect_id}' + filetype

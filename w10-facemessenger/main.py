@@ -79,7 +79,7 @@ def run(args):
             core.messages.report_html(args.depth)
             core.undark.report_html()
             utils.create_report_html(args, suspect_id)
-            utils.create_index_html(args, suspect_id)
+            utils.create_suspects_html(args, suspect_id)
             print("[+] Done")
 
         elif args.format == 'csv':
