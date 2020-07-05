@@ -330,7 +330,7 @@ def create_suspect_index_row(html, suspect_profile, depth):
     div_row = html.new_tag('div')
     div_col_left = html.new_tag('div')
     div_col_right = html.new_tag('div')
-    div_row['class'] = "row"
+    div_row['class'] = "row mt-2"
     div_col_left['class'] = "col text-right"
     div_col_right['class'] = "col text-left"
 
