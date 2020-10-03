@@ -59,6 +59,9 @@ Other planned changes:
 - [ ] Migrate to OOP
 - [ ] Add JSON and SQLite output formats
 - [ ] Remove CSV and HTML output formats
+- [ ] Parse RoamingState
+- [ ] Parse WAL files
+- [ ] Add support for non-beta version of Messenger
 - [ ] Add support for GNU/Linux and macOS
 
 ## Contributing
