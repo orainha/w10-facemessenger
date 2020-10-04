@@ -13,11 +13,15 @@ This tool is currently capable of extracting the following content:
 
 Clone this repository into your local machine and run ```pip install -r requirements.txt```.
 
-We will be providing binary packages soon.
+As an alternative, you can use one of the self-contained executables we provide (see [Releases](https://github.com/ricardoapl/w10-facemessenger/releases)).
 
 ## Requirements
 
-For the time being, you must run Microsoft Windows and install [Python 3](https://www.python.org/).
+For the time being, you must run Microsoft Windows.
+
+If you choose to run from source, you will need [Python 3](https://www.python.org/).
+
+There's no need to install Python or any other software if you opt for the provided binary releases.
 
 ## Usage
 
@@ -43,6 +47,10 @@ required arguments:
   --input INPUT         set path to user directory
 ```
 
+## Known issues
+
+The self-contained executables we provide are currently being flagged as malicious by some anti-malware solutions. In case of doubt, feel free to bundle the binaries yourself with PyInstaller and the provided ```pyinstaller.spec``` file.
+
 ## Support
 
 Please use the [issue tracker](https://github.com/ricardoapl/w10-facemessenger/issues) to ask for help, request a new feature or report any bugs.
@@ -53,14 +61,11 @@ Future work includes decoupling the ingest and report parts into separate tools,
 
 Other planned changes:
 
-- [ ] Adopt a consistent code style
-- [ ] Create tests for core ingest functionality
-- [ ] Sync with [Travis CI](https://travis-ci.org/)
-- [ ] Migrate to OOP
 - [ ] Add JSON and SQLite output formats
 - [ ] Remove CSV and HTML output formats
+- [ ] Parse other content type from cache (videos, text files, etc)
+- [ ] Parse SQLite WAL files
 - [ ] Parse RoamingState
-- [ ] Parse WAL files
 - [ ] Add support for non-beta version of Messenger
 - [ ] Add support for GNU/Linux and macOS
 
